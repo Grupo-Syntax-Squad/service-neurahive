@@ -5,12 +5,15 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"No tests yet\"",
-    "prepare": "husky || true"  },
+    "prepare": "husky || true"
+  },
+  "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@commitlint/cli": "^19.8.0",
     "@commitlint/config-conventional": "^19.8.0",
+    "conventional-changelog": "^6.0.0",
     "husky": "^9.1.7"
   }
 }
