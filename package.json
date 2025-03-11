@@ -4,46 +4,49 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-        "test": "echo \"No tests yet\"",
-        "prepare": "husky",
-        "changelog": "git fetch --tags && auto-changelog -v $(sed -n '/VERSION/p' app/version.py  | head -n 1 | cut -d '\"' -f2)"
+    "test": "echo \"No tests yet\"",
+    "prepare": "husky",
+    "changelog": "git fetch --tags && auto-changelog -v $(sed -n '/VERSION/p' app/version.py  | head -n 1 | cut -d '\"' -f2)"
+  },
+  "auto-changelog": {
+    "output": "CHANGELOG.md",
+    "template": "changelog-template.hbs",
+    "unreleased": true,
+    "commitLimit": false,
+    "tagPattern": ".+",
+    "replaceText": {
+      "^fix: |^feature: |^refactor: |^ci: |^test: |^docs: |^security: |^deprecated: |^remove: ": "",
+      "#([a-zA-Z0-9]+)": "[#$1](https://tree.taiga.io/project/b4hia-api-5/taskboard/sprint1-3290)"
     },
-    "auto-changelog": {
-        "output": "CHANGELOG.md",
-        "template": "changelog-template.hbs",
-        "unreleased": true,
-        "commitLimit": false,
-        "tagPattern": ".+",
-        "replaceText": {
-        "^fix: |^feature: |^refactor: |^ci: |^test: |^docs: |^security: |^deprecated: |^remove: ": "",
-        "#([a-zA-Z0-9]+)": "[#$1](https://tree.taiga.io/project/b4hia-api-5/taskboard/sprint1-3290)"
-        },
-        "ignoreCommitPattern": ".*?(\\[skip [Cc][Ii]\\]|\\[skip [Cc]hangelog\\]).*?"
-    },
-    "release": {
+    "ignoreCommitPattern": ".*?(\\[skip [Cc][Ii]\\]|\\[skip [Cc]hangelog\\]).*?"
+  },
+  "release": {
     "plugins": [
-        "@semantic-release/commit-analyzer",
-        "@semantic-release/release-notes-generator",
-        "@semantic-release/changelog",
-        [
-            "@semantic-release/github",
+      "@semantic-release/commit-analyzer",
+      "@semantic-release/release-notes-generator",
+      "@semantic-release/changelog",
+      [
+        "@semantic-release/github",
+        {
+          "assets": [
             {
-                "assets": [
-                    {
-                        "path": "dist/*.zip",
-                        "label": "Build"
-                    }
-                ]
+              "path": "dist/*.zip",
+              "label": "Build"
             }
-        ],
-        "@semantic-release/npm",
-        [
-            "@semantic-release/git",
-            {
-                "assets": ["package.json", "CHANGELOG.md"],
-                "message": "chore(release): 🤖 ${nextRelease.version} [skip ci]"
-            }
-        ]
+          ]
+        }
+      ],
+      "@semantic-release/npm",
+      [
+        "@semantic-release/git",
+        {
+          "assets": [
+            "package.json",
+            "CHANGELOG.md"
+          ],
+          "message": "chore(release): 🤖 ${nextRelease.version} [skip ci]"
+        }
+      ]
     ],
     "preset": "angular"
   },
@@ -52,6 +55,7 @@
   "devDependencies": {
     "@commitlint/cli": "^19.8.0",
     "@commitlint/config-conventional": "^19.8.0",
+    "auto-changelog": "^2.5.0",
     "conventional-changelog": "^6.0.0",
     "husky": "^9.1.7"
   }
