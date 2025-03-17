@@ -149,14 +149,14 @@ ruff check .
 ## Commits
 When committing your code you **MUST** add one of the following tags to the start of your commit:
 * fix: You fixed a bug;
-* feature: You added new functionality, module or changed how another feature works;
+* feat: You added new functionality, module or changed how another feature works;
 * refactor: You reimplemented a functionality;
 * docs: You added documentation to a piece of code, this readme ou changed the changelog template;
-* ci: You modified in any way the file `gitlab-ci`;
+* build: You modified build process, dependencies, or CI/CD;
+* chore: You added administrative or configuration changes that do not affect code logic;
+* perf: You added codes performance;
 * test: You added new tests, changed existing ones or update test dependencies;
-* security: You added or fixed a security flaw;
-* deprecated: You set a feature as deprecated; or
-* remove: You removed a feature.
-<br>
+* style: You added formatting adjustments, like indentation, white spaces, or quotes
+* revert: You removed a feature.
 
 When you are ready to create a merge request, simply push your changes to github and create a merge request from the web page. That's it.
