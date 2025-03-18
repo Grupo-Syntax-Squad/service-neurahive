@@ -1,162 +1,189 @@
-# service-neurahive
+# service-neurahive 🍯
 
-## Getting started
+## Setup database
 
-If you are likely going to commit to any submodule, make sure to follow their readme to install
-any dev dependency and necessary runtimes. 
+[All commands](#command-blocks)
 
-You must install node, if don't already have it.
+### Install docker compose
+
 ```bash
-sudo apt update
-sudo apt upgrade
-
-# installs nvm (Node Version Manager)
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-
-# download and install Node.js (you may need to restart the terminal)
-nvm install 20
-
-# verifies the right Node.js version is in the environment
-node -v # should print `v20.18.1`
-
-# verifies the right npm version is in the environment
-npm -v # should print `10.8.2`
-```
-Now you will run theses commands to set up your commit envinronment to follow our commit, version and changelog patterns.
-```bash
-npm ci
-npx husky init
-echo "npx commitlint --version" > .husky/pre-commit
-echo "npx --no -- commitlint --verbose --config commitlint.config.js --edit \$1" > .husky/commit-msg
-echo "export HUSKY=0
-npm run changelog
-export HUSKY=1" > .husky/pre-push
+sudo apt install docker-compose
 ```
 
-Make a copy of the `.env.example` file and rename it to `.env`
+### Setup container with postgres and database
+
 ```bash
-cp .env.example .env
+docker-compose up -d
 ```
-Change the following variable in the `.env` file to:
-```dotenv
-DATABASE_URI=postgresql+asyncpg://postgres:password@localhost:5432/neurahive
-```
-### Setting up you development environment
-Make sure `python 3.12` or newer is installed:
-```bash
-python3 -V
-```
-**If you are not:**
-Install python 3.12 or later, your machine probably includes it by default but you may not have this python version installed, you can install it via apt using theses commands:
-```bash
-sudo apt update
-sudo apt upgrade
-sudo add-apt-repository ppa:deadsnakes/ppa
-sudo apt update
-sudo apt install python3.12
-```
-It might be necessary to install pip as well, you may do so by running:
-```bash
-sudo apt install python3.12-distutils
-wget https://bootstrap.pypa.io/get-pip.py
-sudo python3.12 get-pip.py
-```
-Now, create a virtual environment for this project and install its dependencies with:
+
+## Virtual enviroment
+
+### Install python venv
+
 ```bash
 sudo apt install python3.12-venv
-python3.12 -m venv .venv
+```
+
+### Create virtual enviroment
+
+```bash
+python3 -m venv .venv
+```
+
+### Activate virtual enviroment
+
+```bash
+source .venv/bin/activate
+```
+
+## Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+## Alembic
+
+### Alembic init
+
+```bash
+alembic init alembic
+```
+
+### Set database URI inside of alembic.ini file
+
+```ini
+sqlalchemy.url = postgresql://postgres:password@localhost/neurahive
+```
+
+### Alembic env.py config
+
+```python
+from logging.config import fileConfig
+import sys
+import os
+from sqlalchemy import engine_from_config
+from sqlalchemy import pool
+
+from alembic import context
+from src.database.models import Base
+
+
+# this is the Alembic Config object, which provides
+# access to the values within the .ini file in use.
+config = context.config
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
+
+# Interpret the config file for Python logging.
+# This line sets up loggers basically.
+if config.config_file_name is not None:
+    fileConfig(config.config_file_name)
+
+# add your model's MetaData object here
+# for 'autogenerate' support
+# from myapp import mymodel
+# target_metadata = mymodel.Base.metadata
+target_metadata = Base.metadata
+
+# other values from the config, defined by the needs of env.py,
+# can be acquired:
+# my_important_option = config.get_main_option("my_important_option")
+# ... etc.
+
+
+def run_migrations_offline() -> None:
+    """Run migrations in 'offline' mode.
+
+    This configures the context with just a URL
+    and not an Engine, though an Engine is acceptable
+    here as well.  By skipping the Engine creation
+    we don't even need a DBAPI to be available.
+
+    Calls to context.execute() here emit the given string to the
+    script output.
+
+    """
+    url = config.get_main_option("sqlalchemy.url")
+    context.configure(
+        url=url,
+        target_metadata=target_metadata,
+        literal_binds=True,
+        dialect_opts={"paramstyle": "named"},
+    )
+
+    with context.begin_transaction():
+        context.run_migrations()
+
+
+def run_migrations_online() -> None:
+    """Run migrations in 'online' mode.
+
+    In this scenario we need to create an Engine
+    and associate a connection with the context.
+
+    """
+    connectable = engine_from_config(
+        config.get_section(config.config_ini_section, {}),
+        prefix="sqlalchemy.",
+        poolclass=pool.NullPool,
+    )
+
+    with connectable.connect() as connection:
+        context.configure(connection=connection, target_metadata=target_metadata)
+
+        with context.begin_transaction():
+            context.run_migrations()
+
+
+if context.is_offline_mode():
+    run_migrations_offline()
+else:
+    run_migrations_online()
+```
+
+### Alembic revision and upgrade
+
+```bash
+alembic revision --autogenerate
+alembic upgrade head
+```
+
+### If you need to delete database and create again run this command
+
+```bash
+alembic stamp head --purge
+```
+
+## Run application in development mode
+
+```
+fastapi dev
+```
+
+## Commands blocks
+
+### Setup database
+
+```bash
+sudo apt install docker-compose
+docker-compose up -d
+```
+
+### Virtual enviroment
+
+```bash
+sudo apt install python3.12-venv
+python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-This file is automatically generated during deployment, but locally you still have to create it, the values you put here have do not affect how the system works.
-### Installing and configuring Docker
-Install Docker:
+### Alembic
+
 ```bash
-# FONTE: https://docs.docker.com/engine/install/ubuntu/
-sudo apt update
-sudo apt install ca-certificates curl
-sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-sudo chmod a+r /etc/apt/keyrings/docker.asc
-
-# Add the repository to Apt sources:
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt update
-sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-sudo docker run --name postgres -p 5432:5432 -e POSTGRES_PASSWORD=password -d postgres:16
-```
-#### Running this project with docker
-Just run:
-```bash
-docker-compose up --build
-```
-*NOTE*: Do not change their specification.
-
-### Installing and configuring DBeaver
-Access the website https://dbeaver.io/download/, download and install DBeaver
-- Open DBeaver (if asked to create an example database, click no)
-- When opening a window to connect a database, click on PostgreSQL and Next (If it doesn't open, click on Database > new connection)
-- Put the following configuration:
-  - Host: localhost
-  - Port: 5432
-  - Database: postgres (check a opção `View all databases`)
-  - Authentication: Database Native
-  - Username: postgres
-  - Password: password
-- Click on `Test connection` (If necessary, click on Download to download the driver)
-- Click `Finish`
-- If it worked, you have a `postgres` database and a `public` schema
-
-**Create a database `neurahive`**
-- Right click on `database` and `create database`
-- Just enter the database name `copa` and click OK
-- Right click on `neurahive` and click `set as default`
-
-### Creating and managing your database (**For future reference**)
-We use alembic to manage database migrations. To start your local database versioning run this command:
-```bash
-source .venv/bin/activate
 alembic init alembic
-```
-
-You are probably using a postgres dump as the base of your database, in that case you will need to delete all rows inside the table `alembic_version` or run the following command:
-```bash
+alembic revision --autogenerate
+alembic upgrade head
 alembic stamp head --purge
 ```
-#### Creating a migration
-Alembic can programmatically create a migration for you, use this command to generate a migration:
-```bash
-source .venv/bin/activate
-alembic revision --autogenerate -m "a basic description"
-```
-A description is but optional however it might prove good to maintain them so that you know the order and which certain changes happened in your local database.
-Then, to *commit* them to your database run:
-```bash
-source .venv/bin/activate
-alembic upgrade head
-```
-
-### Checking your code for lint and type errors
-By installing the `tests/requirements.txt` file, you should have these 2 libraries included in your environment: **ruff** and **mypy**. To use them, simply activate your virtual environment and run:
-```bash
-source .venv/bin/activate
-mypy .
-# and
-ruff check .
-```
-
-## Commits
-When committing your code you **MUST** add one of the following tags to the start of your commit:
-* fix: You fixed a bug;
-* feat: You added new functionality, module or changed how another feature works;
-* refactor: You reimplemented a functionality;
-* docs: You added documentation to a piece of code, this readme ou changed the changelog template;
-* build: You modified build process, dependencies, or CI/CD;
-* chore: You added administrative or configuration changes that do not affect code logic;
-* perf: You added codes performance;
-* test: You added new tests, changed existing ones or update test dependencies;
-* style: You added formatting adjustments, like indentation, white spaces, or quotes
-* revert: You removed a feature.
-
-When you are ready to create a merge request, simply push your changes to github and create a merge request from the web page. That's it.
