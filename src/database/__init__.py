@@ -12,10 +12,6 @@ engine = create_engine(SQLALCHEMY_DATABASE_URL, echo=True)  # type: ignore[arg-t
 SessionFactory = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-@contextmanager
-def get_db() -> Generator[Session, None, None]:
+def get_db() -> Session:
     db = SessionFactory()
-    try:
-        yield db
-    finally:
-        db.close()
+    return db 

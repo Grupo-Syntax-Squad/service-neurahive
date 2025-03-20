@@ -1,4 +1,5 @@
 from sqlalchemy import text
+from auth import get_password_hash
 from constants import Role
 from schemas.basic_response import BasicResponse
 from schemas.user import PostUser
@@ -31,13 +32,15 @@ class CreateUser:
                 )
 
     def _create_user(self):
+        hashed_password = get_password_hash(self.request.password)
         query = text(
             'INSERT INTO "user" (name, email, password, role) VALUES (:name, :email, :password, :role)'
         ).bindparams(
             name=self.request.name,
             email=self.request.email,
-            password=self.request.password,
+            password=hashed_password,
             role=self.request.role,
         )
         with self.session as session:
             session.execute(query)
+            session.commit()
