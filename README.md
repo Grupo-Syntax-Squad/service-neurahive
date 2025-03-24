@@ -4,14 +4,32 @@
 
 [All commands](#command-blocks)
 
-### Install docker compose
+### Install docker compose and start PostgreSQL
+<details>
+  <summary><strong>Ubuntu</strong></summary>
 
 ```bash
 sudo apt install docker-compose
 ```
+</details>
 
-### Setup container with postgres and database
+<details>
+  <summary><strong>Windows</strong></summary>
+  
+  ```powershell
+choco install docker-compose
+```
+</details>
 
+<details>
+  <summary><strong>Mac</strong></summary>
+  
+```bash
+brew install docker-compose
+```
+</details>
+
+##### After installed docker-compose:
 ```bash
 docker-compose up -d
 ```
@@ -20,27 +38,47 @@ docker-compose up -d
 
 ### Install python venv
 
+<details>
+  <summary><strong>Ubuntu</strong></summary>
+
 ```bash
 sudo apt install python3.12-venv
 ```
-
-### Create virtual enviroment
-
+## Install dependencies and Activate virtual enviroment
 ```bash
 python3 -m venv .venv
-```
-
-### Activate virtual enviroment
-
-```bash
 source .venv/bin/activate
-```
-
-## Install dependencies
-
-```bash
 pip install -r requirements.txt
 ```
+</details>
+
+<details>
+  <summary><strong>Windows</strong></summary>
+
+```powershell
+pip install virtualenv
+```
+## Install dependencies and Activate virtual enviroment
+```bash
+python -m venv .venv
+.\.venv\Scripts\Activate
+pip install -r requirementsWindows.txt
+```
+</details>
+
+<details>
+  <summary><strong>Mac</strong></summary>
+
+```bash
+brew install python@3.12
+```
+## Install dependencies and Activate virtual enviroment
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+</details>
 
 ## Alembic
 
@@ -157,23 +195,29 @@ alembic stamp head --purge
 
 ## Run application in development mode
 
-```
+```bash
 fastapi dev
 ```
 
 ## Commands blocks
 
-### Setup database
+
 
 ```bash
-sudo apt install docker-compose
-docker-compose up -d
-```
-
-### Virtual enviroment
-
-```bash
+# Ubuntu
 sudo apt install python3.12-venv
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+
+# Windows
+pip install virtualenv
+python -m venv .venv
+.\.venv\Scripts\Activate
+pip install -r requirements.txt
+
+# Mac
+brew install python@3.12
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
