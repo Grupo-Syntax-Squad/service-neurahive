@@ -1,3 +1,1 @@
-export HUSKY=0
-npm run changelog
-export HUSKY=1
+set HUSKY=1 

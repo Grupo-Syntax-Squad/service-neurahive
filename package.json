@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"No tests yet\"",
     "prepare": "husky",
-    "changelog": "git fetch --tags && auto-changelog -v $(sed -n '/VERSION/p' app/version.py  | head -n 1 | cut -d '\"' -f2)"
+    "changelog": "git fetch --tags && auto-changelog -v $(sed -n '/VERSION/p' app/version.py  | head -n 1 | cut -d '\"' -f2)",
+    "changelog-windows": "git fetch --tags && auto-changelog -v $(powershell \"(Get-Content app/version.py | Select-Object -First 1) -replace '\"', ''\")"
   },
   "auto-changelog": {
     "output": "CHANGELOG.md",
