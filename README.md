@@ -201,8 +201,6 @@ fastapi dev
 
 ## Commands blocks
 
-
-
 ```bash
 # Ubuntu
 sudo apt install python3.12-venv
@@ -231,3 +229,53 @@ alembic revision --autogenerate
 alembic upgrade head
 alembic stamp head --purge
 ```
+
+### 🗃️ Directory Structure
+
+service-neurahive/
+└── src/
+  └───── auth/
+  └───── database/
+  └───── modules/
+  └───── routers/
+  └───── schemas/
+  └───── constants.py
+  └───── main.py
+├── .env.example
+├── .gitignore
+├── alembic.ini
+├── changelog-template.hbs
+├── CHANGELOG.md
+├── commitlint.config.cjs
+├── docker-compose.yml
+├── package.json
+├── pyproject.toml
+├── README.md
+├── requirements.txt
+├── requirementsWindows.txt
+├── version.json
+
+<div align="center">
+
+| Directory                                | Description                                                                                 |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------- |
+| :open_file_folder: src/                  | Main project directory, containing dependencies, source code, and media files.              |
+| :open_file_folder: src/auth              | Authentication-related files.                                                               |
+| :open_file_folder: src/database          | Database-related code.                                                                      |
+| :open_file_folder: src/modules           | All project modules and communication with external services.                               |
+| :open_file_folder: src/routers           | Service requests (backend server and API) via GET, POST, DELETE, and UPDATE methods.        |
+| :open_file_folder: src/schemas           | Project schemas and data models.                                                            |
+| :page_facing_up: .env.example            | Example environment variables file.                                                         |
+| :page_facing_up: .gitignore              | Specifies files and directories to be ignored by Git.                                       |
+| :page_facing_up: alembic.ini             | Configuration file for Alembic migrations.                                                  |
+| :page_facing_up: changelog-template.hbs  | Template file for generating changelogs.                                                    |
+| :page_facing_up: CHANGELOG.md            | File containing the project's change history.                                               |
+| :page_facing_up: commitlint.config.cjs   | Configuration file for commit message linting.                                              |
+| :page_facing_up: docker-compose.yml      | Docker Compose configuration file.                                                          |
+| :page_facing_up: package.json            | Contains project dependencies and scripts for package management.                           |
+| :page_facing_up: pyproject.toml          | Configuration file for Python dependencies and tools.                                       |
+| :page_facing_up: README.md               | Main documentation file for the project.                                                    |
+| :page_facing_up: requirements.txt        | List of dependencies required to run the project.                                           |
+| :page_facing_up: requirementsWindows.txt | List of dependencies for running the project on Windows.                                    |
+| :page_facing_up: version.json            | File containing versioning information for the project.                                     |
+
