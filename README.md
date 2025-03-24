@@ -232,29 +232,6 @@ alembic stamp head --purge
 
 ### 🗃️ Directory Structure
 
-service-neurahive/
-└── src/
-  └───── auth/
-  └───── database/
-  └───── modules/
-  └───── routers/
-  └───── schemas/
-  └───── constants.py
-  └───── main.py
-├── .env.example
-├── .gitignore
-├── alembic.ini
-├── changelog-template.hbs
-├── CHANGELOG.md
-├── commitlint.config.cjs
-├── docker-compose.yml
-├── package.json
-├── pyproject.toml
-├── README.md
-├── requirements.txt
-├── requirementsWindows.txt
-├── version.json
-
 <div align="center">
 
 | Directory                                | Description                                                                                 |
