@@ -1,7 +1,7 @@
 from fastapi import FastAPI
-from database import engine
-from database.models import Base
-from routers import auth, example, user
+from src.database.get_db import engine
+from src.database.models import Base
+from src.routers import auth, example, user
 
 Base.metadata.create_all(bind=engine)
 

@@ -1,8 +1,10 @@
-from sqlalchemy import text
-from auth import get_password_hash
-from constants import Role
-from schemas.basic_response import BasicResponse
-from schemas.user import PostUser
+from typing import Callable
+from sqlalchemy import select, text, update
+from src.constants import Role
+from src.auth.auth_utils import get_password_hash
+from src.database.models import User
+from src.schemas.basic_response import BasicResponse
+from src.schemas.user import GetUserResponse, PostUser, PutUserRequest
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -44,3 +46,67 @@ class CreateUser:
         with self.session as session:
             session.execute(query)
             session.commit()
+
+
+class Operation:
+    ONE_USER = "One user"
+    ALL_USERS = "All users"
+
+
+class GetUser:
+    def __init__(self, session: Session, user_id: int | None):
+        self._session = session
+        self._user_id = user_id
+        self.operation: Operation | None
+        self.operations: dict[Operation, Callable[[], None]] = {
+            Operation.ONE_USER: self._get_user,
+            Operation.ALL_USERS: self._get_users,
+        }
+
+    def execute(self) -> BasicResponse[list[GetUserResponse] | GetUserResponse]:
+        self._define_operation()
+        data = None
+        if self.operation:
+            data = self.operations[self.operation]()
+        return BasicResponse(data=data, status_code=status.HTTP_302_FOUND)
+
+    def _define_operation(self) -> None:
+        self.operation = Operation.ONE_USER if self._user_id else Operation.ALL_USERS
+
+    def _get_users(self) -> list[GetUserResponse]:
+        query = select(User)
+        result = self._session.execute(query)
+        return [GetUserResponse(**user._asdict()) for user in result.fetchall()]
+
+    def _get_user(self) -> GetUserResponse:
+        query = select(User).where(User.id == self._user_id)
+        result = self._session.execute(query)
+        users = result.fetchall()
+        if len(users) < 1:
+            raise HTTPException(
+                detail="User doesn't exists", status_code=status.HTTP_404_NOT_FOUND
+            )
+        return GetUserResponse(**users[0]._asdict())
+
+
+class UpdateUser:
+    def __init__(self, session: Session, user_data: PutUserRequest) -> None:
+        self._session = session
+        self._user_data = user_data
+
+    def execute(self) -> BasicResponse[None]:
+        self._update_user()
+        return BasicResponse()
+
+    def _update_user(self) -> None:
+        query = (
+            update(User)
+            .where(User.id == self._user_data.id)
+            .values(
+                email=self._user_data.email,
+                password=self._user_data.password,
+                name=self._user_data.name,
+                role=self._user_data.role,
+            )
+        )
+        self._session.execute(query)

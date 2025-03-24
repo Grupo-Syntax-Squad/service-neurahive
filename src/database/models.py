@@ -13,7 +13,7 @@ from sqlalchemy.orm import Mapped, mapped_column, declarative_base
 Base = declarative_base()
 
 
-class Example(Base):
+class Example(Base):  # type: ignore[valid-type, misc]
     __tablename__ = "example"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
@@ -23,7 +23,7 @@ class Example(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_onupdate=func.now())
 
 
-class User(Base):
+class User(Base):  # type: ignore[valid-type, misc]
     __tablename__ = "user"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)

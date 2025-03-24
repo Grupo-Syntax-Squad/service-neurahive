@@ -1,9 +1,13 @@
 from datetime import datetime
 from sqlalchemy import Row, text
 from sqlalchemy.orm import Session
-from schemas.example import GetExampleResponse, PostExampleRequest, DeleteExampleRequest
-from schemas.basic_response import BasicResponse
-from database.models import Example
+from src.schemas.example import (
+    GetExampleResponse,
+    PostExampleRequest,
+    DeleteExampleRequest,
+)
+from src.schemas.basic_response import BasicResponse
+from src.database.models import Example
 from fastapi import status
 
 
