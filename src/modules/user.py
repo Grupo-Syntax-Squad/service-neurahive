@@ -1,4 +1,5 @@
-from typing import Callable
+from enum import Enum
+from typing import Any, Callable, Union
 from sqlalchemy import select, text, update
 from src.constants import Role
 from src.auth.auth_utils import get_password_hash
@@ -17,9 +18,9 @@ class CreateUser:
     def execute(self) -> BasicResponse[None]:
         self._validate_roles()
         self._create_user()
-        return BasicResponse(message="OK", status_code=status.HTTP_201_CREATED)()
+        return BasicResponse(message="OK", status_code=status.HTTP_201_CREATED)
 
-    def _validate_roles(self):
+    def _validate_roles(self) -> None:
         roles = [Role.ADMIN.value, Role.CURATOR.value, Role.CLIENT.value]
         if len(self.request.role) > len(roles):
             raise HTTPException(
@@ -33,7 +34,7 @@ class CreateUser:
                     status_code=status.HTTP_400_BAD_REQUEST,
                 )
 
-    def _create_user(self):
+    def _create_user(self) -> None:
         hashed_password = get_password_hash(self.request.password)
         query = text(
             'INSERT INTO "user" (name, email, password, role) VALUES (:name, :email, :password, :role)'
@@ -48,7 +49,7 @@ class CreateUser:
             session.commit()
 
 
-class Operation:
+class Operation(Enum):
     ONE_USER = "One user"
     ALL_USERS = "All users"
 
@@ -57,13 +58,15 @@ class GetUser:
     def __init__(self, session: Session, user_id: int | None):
         self._session = session
         self._user_id = user_id
-        self.operation: Operation | None
-        self.operations: dict[Operation, Callable[[], None]] = {
+        self.operation: Operation | None = None
+        self.operations: dict[
+            Operation, Callable[[], Union[GetUserResponse, list[GetUserResponse]]]
+        ] = {
             Operation.ONE_USER: self._get_user,
             Operation.ALL_USERS: self._get_users,
         }
 
-    def execute(self) -> BasicResponse[list[GetUserResponse] | GetUserResponse]:
+    def execute(self) -> BasicResponse[Union[list[GetUserResponse], GetUserResponse]]:
         self._define_operation()
         data = None
         if self.operation:
@@ -110,3 +113,8 @@ class UpdateUser:
             )
         )
         self._session.execute(query)
+
+
+class DeleteUser:
+    def __init__(self) -> None:
+        pass

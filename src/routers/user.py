@@ -18,7 +18,7 @@ def get_users(
     session: Session = Depends(get_db),
 ) -> BasicResponse[list[GetUserResponse] | GetUserResponse]:
     PermissionValidator(current_user).execute()
-    return GetUser(session, user_id).execute()()
+    return GetUser(session, user_id).execute()
 
 
 @router.post("/")

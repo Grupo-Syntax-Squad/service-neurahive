@@ -1,5 +1,6 @@
 from datetime import datetime
-from sqlalchemy import Row, text
+from sqlalchemy import text
+from sqlalchemy.engine import Row
 from sqlalchemy.orm import Session
 from src.schemas.example import (
     GetExampleResponse,
@@ -18,16 +19,16 @@ class GetExample:
     def execute(self) -> BasicResponse[list[GetExampleResponse]]:
         self._get_examples()
         self._format_response()
-        return BasicResponse(data=self.result)()
+        return BasicResponse(data=self.result)
 
-    def _get_examples(self):
+    def _get_examples(self) -> None:
         with self._session as session:
             query = text("""SELECT * FROM example""")
             result = session.execute(query)
             examples: list[Row] = result.fetchall()
             self.result = [example._asdict() for example in examples]
 
-    def _format_response(self):
+    def _format_response(self) -> None:
         self.result = [
             GetExampleResponse(
                 id=result["id"],
@@ -49,9 +50,9 @@ class CreateExample:
         self._create_example()
         return BasicResponse(
             message="Example created", status_code=status.HTTP_201_CREATED
-        )()
+        )
 
-    def _create_example(self):
+    def _create_example(self) -> None:
         with self._session as session:
             example = Example(name=self._example.name, updated_at=datetime.now())
             session.add(example)
@@ -65,11 +66,9 @@ class DeleteExample:
 
     def execute(self) -> BasicResponse[None]:
         self._delete_example()
-        return BasicResponse(
-            message="Example deleted", status_code=status.HTTP_200_OK
-        )()
+        return BasicResponse(message="Example deleted", status_code=status.HTTP_200_OK)
 
-    def _delete_example(self):
+    def _delete_example(self) -> None:
         with self._session as session:
             query = text(
                 """UPDATE example SET enabled = FALSE WHERE id=:id"""

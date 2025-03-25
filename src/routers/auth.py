@@ -1,9 +1,8 @@
-import datetime
+from datetime import timedelta, datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
-from src.database import get_db
+from src.database.get_db import get_db
 from src.database.models import User
-from datetime import timedelta
 from sqlalchemy.orm import Session
 from src.auth.auth_utils import (
     Token,
@@ -22,14 +21,16 @@ router = APIRouter(prefix="/auth")
 
 
 @router.post("/login", response_model=Token)
-def login_for_access_token(form_data: LoginForm, db: Session = Depends(get_db)):
+def login_for_access_token(
+    form_data: LoginForm, db: Session = Depends(get_db)
+) -> dict[str, str]:
     with db as session:
         user = session.query(User).filter(User.email == form_data.email).first()
         if user is None or not verify_password(form_data.password, user.password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
             )
-        user.last_login = datetime.utcnow()
+        user.last_login = datetime.now(timezone.utc)
         session.commit()
 
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
