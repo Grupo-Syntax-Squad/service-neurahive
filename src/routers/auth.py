@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from database import get_db
 from database.models import User
-from datetime import timedelta
+from datetime import timedelta, datetime
 from sqlalchemy.orm import Session
 from auth import Token, verify_password, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 

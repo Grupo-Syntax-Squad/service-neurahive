@@ -69,8 +69,8 @@ def get_current_user(token: str = Depends(get_authorization_header), db: Session
         raise credentials_exception
     return CurrentUser.model_validate(user)
 
-def check_role(user: CurrentUser, required_role: int):
-    if required_role not in user.role:
+def check_role(user: CurrentUser, required_roles: list[int]):
+    if not any(role in user.role for role in required_roles):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You do not have access to this resource",

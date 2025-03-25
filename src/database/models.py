@@ -1,11 +1,13 @@
 from datetime import datetime
 from sqlalchemy import (
     ARRAY,
+    Column,
     ForeignKey,
     Boolean,
     DateTime,
     Integer,
     String,
+    Table,
     func,
     text,
 )
@@ -23,11 +25,11 @@ class Example(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, server_onupdate=func.now())
 
-class GroupAgent(Base):
-    __tablename__ = "group_agent"
-
-    group_id: Mapped[int] = mapped_column(Integer, ForeignKey('group.id'), primary_key=True)
-    agent_id: Mapped[int] = mapped_column(Integer, ForeignKey('agent.id'), primary_key=True)
+group_agent_association = Table(
+    'group_agent', Base.metadata,
+    Column('group_id', Integer, ForeignKey('group.id'), primary_key=True),
+    Column('agent_id', Integer, ForeignKey('agent.id'), primary_key=True)
+)
 
 class User(Base):
     __tablename__ = "user"
@@ -50,11 +52,13 @@ class Agent(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
 
+    groups = relationship('Group', secondary=group_agent_association, back_populates='agents')
+
 class Group(Base):
     __tablename__ = "group"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String, nullable=False)
+    name: Mapped[str] = mapped_column(String, nullable=False, unique=True)
     enabled: Mapped[bool] = mapped_column(Boolean, server_default=text("TRUE"))
 
-    agents = relationship('Agent', secondary=GroupAgent, back_populates='groups')
+    agents = relationship('Agent', secondary=group_agent_association, back_populates='groups')
