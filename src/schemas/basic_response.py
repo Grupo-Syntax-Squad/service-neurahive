@@ -3,7 +3,6 @@ from typing import Optional, TypeVar, Generic
 from fastapi import status
 from fastapi.responses import JSONResponse
 
-
 T = TypeVar("T")
 
 
@@ -17,7 +16,3 @@ class BasicResponse(BaseModel, Generic[T]):
             content={"data": self.data, "message": self.message},
             status_code=self.status_code,
         )
-
-    def __new__(cls):  # type: ignore[no-untyped-def]
-        instance = super().__new__(cls)
-        return instance()

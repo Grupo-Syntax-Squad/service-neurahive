@@ -8,14 +8,13 @@ from passlib.context import CryptContext
 from src.constants import Role
 from src.database.models import User
 from src.database.get_db import get_db
-from dotenv import load_dotenv
-import os
 
-load_dotenv()
+from src.settings import Settings
 
-SECRET_KEY = os.getenv("SECRET_KEY", "default_secret_key")
-ALGORITHM = os.getenv("ALGORITHM", "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("TOKEN_EXPIRATION_TIME", 30))
+settings = Settings()
+SECRET_KEY = settings.SECRET_KEY
+ALGORITHM = settings.ALGORITHM
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
