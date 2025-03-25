@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Any, Callable, Union
+from typing import Callable, Union
 from sqlalchemy import select, text, update
 from src.constants import Role
 from src.auth.auth_utils import get_password_hash
