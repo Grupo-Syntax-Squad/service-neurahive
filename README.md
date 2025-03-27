@@ -4,14 +4,32 @@
 
 [All commands](#command-blocks)
 
-### Install docker compose
+### Install docker compose and start PostgreSQL
+<details>
+  <summary><strong>Ubuntu</strong></summary>
 
 ```bash
 sudo apt install docker-compose
 ```
+</details>
 
-### Setup container with postgres and database
+<details>
+  <summary><strong>Windows</strong></summary>
+  
+  ```powershell
+choco install docker-compose
+```
+</details>
 
+<details>
+  <summary><strong>Mac</strong></summary>
+  
+```bash
+brew install docker-compose
+```
+</details>
+
+##### After installed docker-compose:
 ```bash
 docker-compose up -d
 ```
@@ -20,27 +38,47 @@ docker-compose up -d
 
 ### Install python venv
 
+<details>
+  <summary><strong>Ubuntu</strong></summary>
+
 ```bash
 sudo apt install python3.12-venv
 ```
-
-### Create virtual enviroment
-
+## Install dependencies and Activate virtual enviroment
 ```bash
 python3 -m venv .venv
-```
-
-### Activate virtual enviroment
-
-```bash
 source .venv/bin/activate
-```
-
-## Install dependencies
-
-```bash
 pip install -r requirements.txt
 ```
+</details>
+
+<details>
+  <summary><strong>Windows</strong></summary>
+
+```powershell
+pip install virtualenv
+```
+## Install dependencies and Activate virtual enviroment
+```bash
+python -m venv .venv
+.\.venv\Scripts\Activate
+pip install -r requirementsWindows.txt
+```
+</details>
+
+<details>
+  <summary><strong>Mac</strong></summary>
+
+```bash
+brew install python@3.12
+```
+## Install dependencies and Activate virtual enviroment
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+</details>
 
 ## Alembic
 
@@ -157,23 +195,27 @@ alembic stamp head --purge
 
 ## Run application in development mode
 
-```
+```bash
 fastapi dev
 ```
 
 ## Commands blocks
 
-### Setup database
-
 ```bash
-sudo apt install docker-compose
-docker-compose up -d
-```
-
-### Virtual enviroment
-
-```bash
+# Ubuntu
 sudo apt install python3.12-venv
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+
+# Windows
+pip install virtualenv
+python -m venv .venv
+.\.venv\Scripts\Activate
+pip install -r requirements.txt
+
+# Mac
+brew install python@3.12
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -187,3 +229,30 @@ alembic revision --autogenerate
 alembic upgrade head
 alembic stamp head --purge
 ```
+
+### 🗃️ Directory Structure
+
+<div align="center">
+
+| Directory                                | Description                                                                                 |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------- |
+| :open_file_folder: src/                  | Main project directory, containing dependencies, source code, and media files.              |
+| :open_file_folder: src/auth              | Authentication-related files.                                                               |
+| :open_file_folder: src/database          | Database-related code.                                                                      |
+| :open_file_folder: src/modules           | All project modules and communication with external services.                               |
+| :open_file_folder: src/routers           | Service requests (backend server and API) via GET, POST, DELETE, and UPDATE methods.        |
+| :open_file_folder: src/schemas           | Project schemas and data models.                                                            |
+| :page_facing_up: .env.example            | Example environment variables file.                                                         |
+| :page_facing_up: .gitignore              | Specifies files and directories to be ignored by Git.                                       |
+| :page_facing_up: alembic.ini             | Configuration file for Alembic migrations.                                                  |
+| :page_facing_up: changelog-template.hbs  | Template file for generating changelogs.                                                    |
+| :page_facing_up: CHANGELOG.md            | File containing the project's change history.                                               |
+| :page_facing_up: commitlint.config.cjs   | Configuration file for commit message linting.                                              |
+| :page_facing_up: docker-compose.yml      | Docker Compose configuration file.                                                          |
+| :page_facing_up: package.json            | Contains project dependencies and scripts for package management.                           |
+| :page_facing_up: pyproject.toml          | Configuration file for Python dependencies and tools.                                       |
+| :page_facing_up: README.md               | Main documentation file for the project.                                                    |
+| :page_facing_up: requirements.txt        | List of dependencies required to run the project.                                           |
+| :page_facing_up: requirementsWindows.txt | List of dependencies for running the project on Windows.                                    |
+| :page_facing_up: version.json            | File containing versioning information for the project.                                     |
+
