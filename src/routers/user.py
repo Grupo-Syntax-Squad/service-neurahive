@@ -12,11 +12,11 @@ router = APIRouter(prefix="/users")
 
 @router.get("/")
 def get_users(current_user: CurrentUser = Depends(get_current_user)):
-    check_role(current_user, Role.ADMIN.value)
+    check_role(current_user, [Role.ADMIN.value])
     return True
 
 
 @router.post("/")
 def post_user(request: PostUser,  current_user: CurrentUser = Depends(get_current_user), session: Session = Depends(get_db)):
-    check_role(current_user, Role.ADMIN.value)
+    check_role(current_user, [Role.ADMIN.value])
     return CreateUser(session, request).execute()
