@@ -16,8 +16,8 @@ class GetUserResponse(BaseModel):
     email: str
     password: str
     created_at: datetime
-    updated_at: datetime
-    last_login: datetime
+    updated_at: datetime | None
+    last_login: datetime | None
     enabled: bool
 
 

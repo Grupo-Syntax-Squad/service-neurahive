@@ -1,6 +1,5 @@
 from enum import Enum
-from typing import Callable, Union
-from sqlalchemy import select, text, update
+from sqlalchemy import text, update, and_
 from src.constants import Role
 from src.auth.auth_utils import get_password_hash
 from src.database.models import User
@@ -59,37 +58,42 @@ class GetUser:
         self._session = session
         self._user_id = user_id
         self.operation: Operation | None = None
-        self.operations: dict[
-            Operation, Callable[[], Union[GetUserResponse, list[GetUserResponse]]]
-        ] = {
-            Operation.ONE_USER: self._get_user,
-            Operation.ALL_USERS: self._get_users,
-        }
 
-    def execute(self) -> BasicResponse[Union[list[GetUserResponse], GetUserResponse]]:
-        self._define_operation()
-        data = None
-        if self.operation:
-            data = self.operations[self.operation]()
-        return BasicResponse(data=data, status_code=status.HTTP_302_FOUND)
+    def execute(self) -> BasicResponse[list[GetUserResponse]]:
+        data: list[GetUserResponse]
+        try:
+            self._define_operation()
+            if self.operation == Operation.ALL_USERS:
+                data = self._get_users()
+            else:
+                data = self._get_user()
+            return BasicResponse(data=data)
+        except Exception as e:
+            raise HTTPException(
+                detail=f"Erro interno: {e}",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
     def _define_operation(self) -> None:
         self.operation = Operation.ONE_USER if self._user_id else Operation.ALL_USERS
 
     def _get_users(self) -> list[GetUserResponse]:
-        query = select(User)
+        query = text('SELECT * FROM "user" WHERE enabled=TRUE')
         result = self._session.execute(query)
-        return [GetUserResponse(**user._asdict()) for user in result.fetchall()]
+        users = result.fetchall()
+        return [GetUserResponse(**user._asdict()) for user in users]
 
-    def _get_user(self) -> GetUserResponse:
-        query = select(User).where(User.id == self._user_id)
+    def _get_user(self) -> list[GetUserResponse]:
+        query = text('SELECT * FROM "user" WHERE enabled=TRUE AND id=:id').bindparams(
+            id=self._user_id
+        )
         result = self._session.execute(query)
         users = result.fetchall()
         if len(users) < 1:
             raise HTTPException(
                 detail="User doesn't exists", status_code=status.HTTP_404_NOT_FOUND
             )
-        return GetUserResponse(**users[0]._asdict())
+        return [GetUserResponse(**users[0]._asdict())]
 
 
 class UpdateUser:
@@ -98,13 +102,20 @@ class UpdateUser:
         self._user_data = user_data
 
     def execute(self) -> BasicResponse[None]:
-        self._update_user()
-        return BasicResponse()
+        try:
+            self._update_user()
+            self._session.commit()
+            return BasicResponse()
+        except Exception as e:
+            raise HTTPException(
+                detail=f"Erro interno: {e}",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
     def _update_user(self) -> None:
         query = (
             update(User)
-            .where(User.id == self._user_data.id)
+            .where(and_(User.id == self._user_data.id, User.enabled == True))  # noqa E712
             .values(
                 email=self._user_data.email,
                 password=self._user_data.password,
@@ -115,6 +126,22 @@ class UpdateUser:
         self._session.execute(query)
 
 
-class DeleteUser:
-    def __init__(self) -> None:
-        pass
+class DeactivateUser:
+    def __init__(self, session: Session, user_id: int) -> None:
+        self._session = session
+        self._user_id = user_id
+
+    def execute(self) -> BasicResponse[None]:
+        try:
+            self._deactivate_user()
+            self._session.commit()
+            return BasicResponse()
+        except Exception as e:
+            raise HTTPException(
+                detail=f"Erro interno: {e}",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    def _deactivate_user(self) -> None:
+        query = update(User).where(User.id == self._user_id).values(enabled=False)
+        self._session.execute(query)
