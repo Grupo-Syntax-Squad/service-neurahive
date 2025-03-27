@@ -113,7 +113,7 @@ class AddAgentsToGroup:
                 raise HTTPException(status_code=404, detail="Grupo não encontrado.")
             agents: List[Agent] = db.query(Agent).filter(Agent.id.in_(self.request)).all()
             if len(agents) != len(self.request):
-                raise Exception("Alguns agentes não foram encontrados")
+                raise HTTPException(status_code=404, detail="Alguns agentes não foram encontrados")
             for agent in agents:
                 if not agent in group.agents:
                     group.agents.append(agent)
@@ -137,11 +137,11 @@ class RemoveAgentsFromGroup:
                 raise HTTPException(status_code=404, detail="Grupo não encontrado.")
             agents: List[Agent] = db.query(Agent).filter(Agent.id.in_(self.request)).all()
             if len(agents) != len(self.request):
-                raise Exception("Alguns agentes não foram encontrados")
+                raise HTTPException(status_code=404, detail="Alguns agentes não foram encontrados")
             for agent in agents:
                 if agent in group.agents:
                     group.agents.remove(agent)
                 else:
-                    raise Exception("Agente não está associado a este grupo")
+                    raise HTTPException(status_code=400, detail="Agente não está associado a este grupo")
             db.commit()
             return GroupResponse.from_orm(group)
