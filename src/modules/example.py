@@ -1,6 +1,6 @@
 from datetime import datetime
+from typing import Any
 from sqlalchemy import text
-from sqlalchemy.engine import Row
 from sqlalchemy.orm import Session
 from src.schemas.example import (
     GetExampleResponse,
@@ -18,25 +18,27 @@ class GetExample:
 
     def execute(self) -> BasicResponse[list[GetExampleResponse]]:
         self._get_examples()
-        self._format_response()
-        return BasicResponse(data=self.result)
+        response = self._format_response()
+        return BasicResponse(data=response)
 
     def _get_examples(self) -> None:
         with self._session as session:
             query = text("""SELECT * FROM example""")
             result = session.execute(query)
-            examples: list[Row] = result.fetchall()
-            self.result = [example._asdict() for example in examples]
+            examples = result.fetchall()
+            self.result: list[dict[str, Any]] = [
+                example._asdict() for example in examples
+            ]
 
-    def _format_response(self) -> None:
-        self.result = [
+    def _format_response(self) -> list[GetExampleResponse]:
+        return [
             GetExampleResponse(
                 id=result["id"],
                 name=result["name"],
                 enabled=result["enabled"],
                 created_at=result["created_at"].isoformat(),
                 updated_at=result["updated_at"].isoformat(),
-            ).model_dump()
+            )
             for result in self.result
         ]
 

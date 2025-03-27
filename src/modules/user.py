@@ -1,7 +1,7 @@
 from enum import Enum
 from sqlalchemy import text, update, and_
 from src.constants import Role
-from src.auth.auth_utils import get_password_hash
+from src.auth.auth_utils import Auth
 from src.database.models import User
 from src.schemas.basic_response import BasicResponse
 from src.schemas.user import GetUserResponse, PostUser, PutUserRequest
@@ -34,7 +34,7 @@ class CreateUser:
                 )
 
     def _create_user(self) -> None:
-        hashed_password = get_password_hash(self.request.password)
+        hashed_password = Auth.get_password_hash(self.request.password)
         query = text(
             'INSERT INTO "user" (name, email, password, role) VALUES (:name, :email, :password, :role)'
         ).bindparams(
@@ -97,9 +97,9 @@ class GetUser:
 
 
 class UpdateUser:
-    def __init__(self, session: Session, user_data: PutUserRequest) -> None:
+    def __init__(self, session: Session, request: PutUserRequest) -> None:
         self._session = session
-        self._user_data = user_data
+        self._request = request
 
     def execute(self) -> BasicResponse[None]:
         try:
@@ -113,14 +113,15 @@ class UpdateUser:
             )
 
     def _update_user(self) -> None:
+        hashed_password = Auth.get_password_hash(self._request.password)
         query = (
             update(User)
-            .where(and_(User.id == self._user_data.id, User.enabled == True))  # noqa E712
+            .where(and_(User.id == self._request.id, User.enabled == True))  # noqa E712
             .values(
-                email=self._user_data.email,
-                password=self._user_data.password,
-                name=self._user_data.name,
-                role=self._user_data.role,
+                email=self._request.email,
+                password=hashed_password,
+                name=self._request.name,
+                role=self._request.role,
             )
         )
         self._session.execute(query)

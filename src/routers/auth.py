@@ -5,11 +5,10 @@ from src.database.get_db import get_db
 from src.database.models import User
 from sqlalchemy.orm import Session
 from src.auth.auth_utils import (
-    Token,
-    verify_password,
-    create_access_token,
+    Auth,
     ACCESS_TOKEN_EXPIRE_MINUTES,
 )
+from src.schemas.auth import Token
 
 
 class LoginForm(BaseModel):
@@ -26,7 +25,7 @@ def login_for_access_token(
 ) -> dict[str, str]:
     with db as session:
         user = session.query(User).filter(User.email == form_data.email).first()
-        if user is None or not verify_password(form_data.password, user.password):
+        if user is None or not Auth.verify_password(form_data.password, user.password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
             )
@@ -34,7 +33,7 @@ def login_for_access_token(
         session.commit()
 
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-        access_token = create_access_token(
+        access_token = Auth.create_access_token(
             data={"sub": str(user.id)},
             user_roles=user.role,
             expires_delta=access_token_expires,
