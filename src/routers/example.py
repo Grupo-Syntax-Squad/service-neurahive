@@ -1,9 +1,13 @@
 from fastapi import APIRouter, Depends, Query
-from schemas.example import GetExampleResponse, PostExampleRequest, DeleteExampleRequest
-from schemas.basic_response import BasicResponse
-from database import get_db
+from src.schemas.example import (
+    GetExampleResponse,
+    PostExampleRequest,
+    DeleteExampleRequest,
+)
+from src.schemas.basic_response import BasicResponse
+from src.database.get_db import get_db
 from sqlalchemy.orm import Session
-from modules.example import CreateExample, GetExample, DeleteExample
+from src.modules.example import CreateExample, GetExample, DeleteExample
 
 router = APIRouter(prefix="/example")
 
