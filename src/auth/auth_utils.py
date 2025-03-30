@@ -60,7 +60,7 @@ class Auth:
         if NO_AUTH:
             return None
         credentials_exception = HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Crendenciais inválidas"
         )
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -80,7 +80,7 @@ class PermissionValidator:
     def __init__(
         self,
         user: CurrentUser,
-        roles: list[Role] | Role = [Role.ADMIN, Role.CURATOR, Role.CLIENT],
+        roles: list[Role] | Role,
     ):
         self._roles = roles
         self._user = user

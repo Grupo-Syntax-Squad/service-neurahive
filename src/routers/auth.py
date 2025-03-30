@@ -27,7 +27,7 @@ def login_for_access_token(
         user = session.query(User).filter(User.email == form_data.email).first()
         if user is None or not Auth.verify_password(form_data.password, user.password):
             raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciais inválidas"
             )
         user.last_login = datetime.now(timezone.utc)
         session.commit()
