@@ -1,11 +1,11 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional
 
 
 class AgentResponse(BaseModel):
     id: int
     name: str
-    groups: Optional[List[int]] = []
+    groups: Optional[List[int]] = Field(default_factory=lambda: [])
 
 
 class PostAgent(BaseModel):
