@@ -55,7 +55,11 @@ class Agent(Base):  # type: ignore[valid-type, misc]
     name: Mapped[str] = mapped_column(String, nullable=False)
 
     groups = relationship(
-        "Group", secondary=group_agent_association, back_populates="agents"
+        "Group",
+        secondary=group_agent_association,
+        back_populates="agents",
+        cascade="all, delete",
+        lazy="joined",
     )
 
 
@@ -67,5 +71,9 @@ class Group(Base):  # type: ignore[valid-type, misc]
     enabled: Mapped[bool] = mapped_column(Boolean, server_default=text("TRUE"))
 
     agents = relationship(
-        "Agent", secondary=group_agent_association, back_populates="groups"
+        "Agent",
+        secondary=group_agent_association,
+        back_populates="groups",
+        cascade="all, delete",
+        lazy="joined",
     )
