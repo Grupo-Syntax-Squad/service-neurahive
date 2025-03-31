@@ -29,7 +29,6 @@ pyasn1==0.4.8
 pydantic==2.10.6
 pydantic_core==2.27.2
 Pygments==2.19.1
-pytest==8.3.5
 python-dotenv==1.0.1
 python-jose==3.4.0
 python-multipart==0.0.20
@@ -49,6 +48,5 @@ types-pyasn1==0.6.0.20250208
 types-python-jose==3.4.0.20250224
 typing_extensions==4.12.2
 uvicorn==0.34.0
-uvloop==0.21.0
 watchfiles==1.0.4
 websockets==15.0.1

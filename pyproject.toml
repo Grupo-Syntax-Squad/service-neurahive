@@ -69,8 +69,9 @@ ignore_errors = true
 module = ["grpc.*"]
 
 [tool.pytest.ini_options]
-asyncio_default_fixture_loop_scope = "function"
+testpaths = ["src/tests"]  # Caminho relativo para a pasta de testes
 addopts = "--maxfail=1 --cov=. --cov-fail-under=70 --cov-report html --cov-report term-missing --cov-report xml:coverage_detailed.xml --junitxml=coverage.xml"
+asyncio_default_fixture_loop_scope = "function"
 
 [tool.coverage.run]
 parallel = true
