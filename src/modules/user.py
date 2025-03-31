@@ -1,4 +1,3 @@
-from enum import Enum
 from sqlalchemy import text, update, and_
 from src.constants import Role
 from src.auth.auth_utils import Auth
@@ -48,52 +47,42 @@ class CreateUser:
             session.commit()
 
 
-class Operation(Enum):
-    ONE_USER = "One user"
-    ALL_USERS = "All users"
-
-
 class GetUser:
     def __init__(self, session: Session, user_id: int | None):
         self._session = session
         self._user_id = user_id
-        self.operation: Operation | None = None
 
     def execute(self) -> BasicResponse[list[GetUserResponse]]:
-        data: list[GetUserResponse]
+        self.data: list[GetUserResponse]
         try:
-            self._define_operation()
-            if self.operation == Operation.ALL_USERS:
-                data = self._get_users()
-            else:
-                data = self._get_user()
-            return BasicResponse(data=data)
+            self.data = self._get_users()
+            self._validate()
+            return BasicResponse(data=self.data)
         except Exception as e:
             raise HTTPException(
                 detail=f"Erro interno: {e}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-    def _define_operation(self) -> None:
-        self.operation = Operation.ONE_USER if self._user_id else Operation.ALL_USERS
+    def _validate(self) -> None:
+        if self._user_id and len(self.data) < 1:
+            raise HTTPException(
+                detail="Usuário não encontrado", status_code=status.HTTP_404_NOT_FOUND
+            )
 
     def _get_users(self) -> list[GetUserResponse]:
-        query = text('SELECT * FROM "user" WHERE enabled=TRUE')
+        params = {}
+        if self._user_id:
+            params["id"] = self._user_id
+        query = text(
+            f"""SELECT * 
+            FROM "user" 
+            WHERE 1=1 
+            {"AND id=:id" if self._user_id else ""};"""
+        ).bindparams(**params)
         result = self._session.execute(query)
         users = result.fetchall()
         return [GetUserResponse(**user._asdict()) for user in users]
-
-    def _get_user(self) -> list[GetUserResponse]:
-        query = text('SELECT * FROM "user" WHERE enabled=TRUE AND id=:id').bindparams(
-            id=self._user_id
-        )
-        result = self._session.execute(query)
-        users = result.fetchall()
-        if len(users) < 1:
-            raise HTTPException(
-                detail="User doesn't exists", status_code=status.HTTP_404_NOT_FOUND
-            )
-        return [GetUserResponse(**users[0]._asdict())]
 
 
 class UpdateUser:

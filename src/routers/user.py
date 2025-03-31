@@ -15,11 +15,12 @@ router = APIRouter(prefix="/users")
 @router.get("/")
 def get_users(
     user_id: int | None = None,
+    enabled: bool | None = True,
     current_user: CurrentUser = Depends(Auth.get_current_user),
     session: Session = Depends(get_db),
 ) -> BasicResponse[list[GetUserResponse] | GetUserResponse]:
     PermissionValidator(current_user, Role.ADMIN).execute()
-    return GetUser(session, user_id).execute()()  # type: ignore[return-value]
+    return GetUser(session, user_id, enabled).execute()()  # type: ignore[return-value]
 
 
 @router.post("/")
