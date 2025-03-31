@@ -106,6 +106,16 @@ from sqlalchemy import pool
 from alembic import context
 from src.database.models import Base
 
+from dotenv import load_dotenv
+load_dotenv('../.env')
+
+#Configure environment variables
+database_url = os.getenv('DATABASE_URL')
+if not database_url:
+    raise ValueError("DATABASE_URL não encontrada no arquivo .env")
+
+config = context.config
+config.set_main_option('sqlalchemy.url', database_url)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -196,6 +206,7 @@ alembic stamp head --purge
 ## Run application in development mode
 
 ```bash
+cd src
 fastapi dev
 ```
 
@@ -204,6 +215,7 @@ fastapi dev
 ```bash
 # Ubuntu
 sudo apt install python3.12-venv
+docker-compose up -d
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -242,6 +254,7 @@ alembic stamp head --purge
 | :open_file_folder: src/modules           | All project modules and communication with external services.                               |
 | :open_file_folder: src/routers           | Service requests (backend server and API) via GET, POST, DELETE, and UPDATE methods.        |
 | :open_file_folder: src/schemas           | Project schemas and data models.                                                            |
+| :open_file_folder: src/tests             | Project tests.                                                                              |
 | :page_facing_up: .env.example            | Example environment variables file.                                                         |
 | :page_facing_up: .gitignore              | Specifies files and directories to be ignored by Git.                                       |
 | :page_facing_up: alembic.ini             | Configuration file for Alembic migrations.                                                  |
