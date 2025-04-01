@@ -33,6 +33,13 @@ group_agent_association = Table(
     Column("agent_id", Integer, ForeignKey("agent.id"), primary_key=True),
 )
 
+user_agent_association = Table(
+    "user_agent",
+    Base.metadata,
+    Column("user_id", Integer, ForeignKey("user.id"), primary_key=True),
+    Column("agent_id", Integer, ForeignKey("agent.id"), primary_key=True),
+)
+
 
 class User(Base):  # type: ignore[valid-type, misc]
     __tablename__ = "user"
@@ -47,12 +54,28 @@ class User(Base):  # type: ignore[valid-type, misc]
     last_login: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     enabled: Mapped[bool] = mapped_column(Boolean, server_default=text("TRUE"))
 
+    agents = relationship(
+        "Agent",
+        secondary=user_agent_association,
+        back_populates="users",
+        cascade="all, delete",
+        lazy="joined",
+    )
+
 
 class Agent(Base):  # type: ignore[valid-type, misc]
     __tablename__ = "agent"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
+
+    users = relationship(
+        "User",
+        secondary=user_agent_association,
+        back_populates="agents",
+        cascade="all, delete",
+        lazy="joined",
+    )
 
     groups = relationship(
         "Group",

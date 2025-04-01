@@ -86,6 +86,7 @@ class PermissionValidator:
         self._user = user
 
     def execute(self) -> None:
+        print(self._roles)
         if NO_AUTH:
             return None
         if isinstance(self._roles, list):
@@ -101,5 +102,8 @@ class PermissionValidator:
             )
 
     def _verify_roles(self, roles: list[Role]) -> None:
-        for role in roles:
-            self._verify_role(role)
+        if not any(role.value in self._user.role for role in roles):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You do not have access to this resource",
+            )

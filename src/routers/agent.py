@@ -18,7 +18,7 @@ def get_agents(
     current_user: CurrentUser = Depends(Auth.get_current_user),
     session: Session = Depends(get_db),
 ) -> GetAgentBasicResponse[list[AgentResponse] | AgentResponse]:
-    PermissionValidator(current_user).execute()
+    PermissionValidator(current_user, [Role.ADMIN, Role.CURATOR]).execute()
     return GetAgent(session, agent_id).execute()
 
 
