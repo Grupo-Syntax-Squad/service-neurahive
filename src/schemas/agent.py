@@ -7,7 +7,15 @@ class AgentResponse(BaseModel):
     name: str
     groups: Optional[List[int]] = Field(default_factory=lambda: [])
 
+    class Config:
+        orm_mode = True
+        from_attributes = True
+
 
 class PostAgent(BaseModel):
     name: str
     groups: Optional[List[int]] = []
+
+    class Config:
+        orm_mode = True
+        from_attributes = True

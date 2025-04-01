@@ -1,12 +1,14 @@
 from enum import Enum
+from typing import List
 from sqlalchemy import text, update, and_
 from src.constants import Role
 from src.auth.auth_utils import Auth
-from src.database.models import User
+from src.database.models import Agent, User
 from src.schemas.basic_response import BasicResponse
 from src.schemas.user import GetUserResponse, PostUser, PutUserRequest
 from fastapi import HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
+from pprint import pprint
 
 
 class CreateUser:
@@ -16,7 +18,9 @@ class CreateUser:
 
     def execute(self) -> BasicResponse[None]:
         self._validate_roles()
-        self._create_user()
+        createdUser = self._create_user()
+        if(len(self.request.selectedAgents) > 0):
+            self._add_agents_to_user(createdUser.id)
         return BasicResponse(message="OK", status_code=status.HTTP_201_CREATED)
 
     def _validate_roles(self) -> None:
@@ -33,19 +37,35 @@ class CreateUser:
                     status_code=status.HTTP_400_BAD_REQUEST,
                 )
 
-    def _create_user(self) -> None:
+    def _create_user(self) -> User | None:
         hashed_password = Auth.get_password_hash(self.request.password)
-        query = text(
-            'INSERT INTO "user" (name, email, password, role) VALUES (:name, :email, :password, :role)'
-        ).bindparams(
-            name=self.request.name,
-            email=self.request.email,
-            password=hashed_password,
-            role=self.request.role,
-        )
-        with self.session as session:
-            session.execute(query)
-            session.commit()
+        with self.session as db:
+            user = User(name=self.request.name, email=self.request.email, password=hashed_password, role=self.request.role, agents=[])
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+            return user
+
+    def _add_agents_to_user(self, user_id) -> None:
+        with self.session as db:
+            user: User = (
+                db.query(User).options(joinedload(User.agents)).get(user_id)  # type: ignore[assignment]
+            )
+            if not user:
+                raise HTTPException(status_code=404, detail="Usuario não encontrado.")
+            agents: List[Agent] = (
+                db.query(Agent).filter(Agent.id.in_(self.request.selectedAgents)).all()
+            )
+            if len(agents) != len(self.request.selectedAgents):
+                raise HTTPException(
+                    status_code=404, detail="Alguns agentes não foram encontrados"
+                )
+            for agent in agents:
+                if agent not in user.agents:
+                    user.agents.append(agent)
+            db.commit()
+            return GetUserResponse.from_orm(user)
+    
 
 
 class Operation(Enum):
@@ -67,6 +87,7 @@ class GetUser:
                 data = self._get_users()
             else:
                 data = self._get_user()
+            pprint(data)
             return BasicResponse(data=data)
         except Exception as e:
             raise HTTPException(
@@ -78,22 +99,22 @@ class GetUser:
         self.operation = Operation.ONE_USER if self._user_id else Operation.ALL_USERS
 
     def _get_users(self) -> list[GetUserResponse]:
-        query = text('SELECT * FROM "user" WHERE enabled=TRUE')
-        result = self._session.execute(query)
-        users = result.fetchall()
-        return [GetUserResponse(**user._asdict()) for user in users]
+        with self._session as db:
+            users = db.query(User).options(joinedload(User.agents)).all()
+            serialized_users = [GetUserResponse.from_orm(user) for user in users]
+            return serialized_users
 
-    def _get_user(self) -> list[GetUserResponse]:
-        query = text('SELECT * FROM "user" WHERE enabled=TRUE AND id=:id').bindparams(
-            id=self._user_id
-        )
-        result = self._session.execute(query)
-        users = result.fetchall()
-        if len(users) < 1:
-            raise HTTPException(
-                detail="User doesn't exists", status_code=status.HTTP_404_NOT_FOUND
+    def _get_user(self) -> GetUserResponse:
+        with self._session as db:
+            user: User = (
+                db.query(User).options(joinedload(User.agents)).get(self._user_id)  # type: ignore[assignment]
             )
-        return [GetUserResponse(**users[0]._asdict())]
+            if (not user):
+                raise HTTPException(
+                    detail="User doesn't exists", status_code=status.HTTP_404_NOT_FOUND
+                )
+            serialized_user = GetUserResponse.from_orm(user)
+            return serialized_user
 
 
 class UpdateUser:
