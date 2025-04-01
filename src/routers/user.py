@@ -14,12 +14,22 @@ router = APIRouter(prefix="/users")
 
 @router.get("/")
 def get_users(
-    user_id: int | None = None,
     current_user: CurrentUser = Depends(Auth.get_current_user),
     session: Session = Depends(get_db),
 ) -> BasicResponse[list[GetUserResponse] | GetUserResponse]:
-    PermissionValidator(current_user).execute()
-    return GetUser(session, user_id).execute()()  # type: ignore[return-value]
+    PermissionValidator(current_user, Role.ADMIN).execute()
+    return GetUser(session, None).execute()()  # type: ignore[return-value]
+
+
+@router.get("/{id}")
+def get_user(
+    id: int,
+    current_user: CurrentUser = Depends(Auth.get_current_user),
+    session: Session = Depends(get_db),
+) -> BasicResponse[list[GetUserResponse] | GetUserResponse]:
+    if (current_user.id != id):
+        PermissionValidator(current_user, Role.ADMIN).execute()
+    return GetUser(session, id).execute()()  # type: ignore[return-value]
 
 
 @router.post("/")
@@ -38,7 +48,8 @@ def put_user(
     current_user: CurrentUser = Depends(Auth.get_current_user),
     session: Session = Depends(get_db),
 ) -> BasicResponse[None]:
-    PermissionValidator(current_user).execute()
+    if (current_user.id != request.id):
+        PermissionValidator(current_user, Role.ADMIN).execute()
     return UpdateUser(session, request).execute()()  # type: ignore[return-value]
 
 
