@@ -213,7 +213,7 @@ alembic upgrade head
 
 ```bash
 cd src
-fastapi dev
+fastapi dev main.py --host 0.0.0.0
 ```
 
 <span id=#command-blocks></span>
