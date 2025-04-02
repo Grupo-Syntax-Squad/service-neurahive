@@ -27,8 +27,7 @@ def get_user(
     current_user: CurrentUser = Depends(Auth.get_current_user),
     session: Session = Depends(get_db),
 ) -> BasicResponse[list[GetUserResponse] | GetUserResponse]:
-    if (current_user.id != id):
-        PermissionValidator(current_user, Role.ADMIN).execute()
+    PermissionValidator(current_user, Role.ADMIN).execute()
     return GetUser(session, id).execute()()  # type: ignore[return-value]
 
 
@@ -48,8 +47,7 @@ def put_user(
     current_user: CurrentUser = Depends(Auth.get_current_user),
     session: Session = Depends(get_db),
 ) -> BasicResponse[None]:
-    if (current_user.id != request.id):
-        PermissionValidator(current_user, Role.ADMIN).execute()
+    PermissionValidator(current_user, Role.ADMIN).execute()
     return UpdateUser(session, request).execute()()  # type: ignore[return-value]
 
 
