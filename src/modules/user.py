@@ -1,6 +1,6 @@
 from enum import Enum
 from typing import List
-from sqlalchemy import text, update, and_
+from sqlalchemy import update, and_
 from src.constants import Role
 from src.auth.auth_utils import Auth
 from src.database.models import Agent, User
@@ -19,7 +19,7 @@ class CreateUser:
     def execute(self) -> BasicResponse[None]:
         self._validate_roles()
         createdUser = self._create_user()
-        if(len(self.request.selectedAgents) > 0):
+        if (len(self.request.selectedAgents) > 0):
             self._add_agents_to_user(createdUser.id)
         return BasicResponse(message="OK", status_code=status.HTTP_201_CREATED)
 
@@ -66,7 +66,6 @@ class CreateUser:
             db.commit()
             return GetUserResponse.from_orm(user)
     
-
 
 class Operation(Enum):
     ONE_USER = "One user"

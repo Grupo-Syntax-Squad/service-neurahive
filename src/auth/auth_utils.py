@@ -80,30 +80,17 @@ class PermissionValidator:
     def __init__(
         self,
         user: CurrentUser,
-        roles: list[Role] | Role = [Role.ADMIN, Role.CURATOR, Role.CLIENT],
+        roles: list[Role] = [Role.ADMIN, Role.CURATOR, Role.CLIENT],
     ):
-        self._roles = roles
         self._user = user
+        self._roles = roles
 
     def execute(self) -> None:
-        print(self._roles)
-        if NO_AUTH:
-            return None
-        if isinstance(self._roles, list):
-            self._verify_roles(self._roles)
-        else:
-            self._verify_role(self._roles)
-
-    def _verify_role(self, role: Role) -> None:
-        if role.value not in self._user.role:
+        if not self._verify_roles():
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You do not have access to this resource",
             )
 
-    def _verify_roles(self, roles: list[Role]) -> None:
-        if not any(role.value in self._user.role for role in roles):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You do not have access to this resource",
-            )
+    def _verify_roles(self) -> None:
+        return any(role.value in self._user.role for role in self._roles)

@@ -23,7 +23,7 @@ def singleton(cls: Type[T]) -> Callable[[], T]:
 class Settings:
     def __init__(self) -> None:
         self.DATABASE_URL = os.getenv(
-            "DATABASE_URL", "postgresql://postgres:password@localhost/"
+            "DATABASE_URL", "postgresql+asyncpg://postgres:password@localhost/neurahive"
         )
         self.SECRET_KEY = os.getenv("SECRET_KEY", "default_secret_key")
         self.ALGORITHM = os.getenv("ALGORITHM", "HS256")
