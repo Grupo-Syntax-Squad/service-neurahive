@@ -1,0 +1,29 @@
+{
+    "faq": [
+      {
+        "pergunta": "Qual é o papel do setor de Recursos Humanos?",
+        "resposta": "O setor de Recursos Humanos é responsável pela gestão de pessoas dentro da empresa, incluindo recrutamento, treinamento, desenvolvimento, benefícios e clima organizacional."
+      },
+      {
+        "pergunta": "Como posso me candidatar a uma vaga na empresa?",
+        "resposta": "Você pode se candidatar acessando a seção 'Trabalhe Conosco' no site da empresa ou enviando seu currículo diretamente para o e-mail do RH."
+      },
+      {
+        "pergunta": "Quais são os benefícios oferecidos pela empresa?",
+        "resposta": "A empresa oferece vale-transporte, vale-refeição, plano de saúde, plano odontológico, seguro de vida e programas de bem-estar e desenvolvimento."
+      },
+      {
+        "pergunta": "O que fazer em caso de dúvidas sobre a folha de pagamento?",
+        "resposta": "Em caso de dúvidas sobre a folha de pagamento, entre em contato diretamente com o setor de RH pelo e-mail ou telefone interno disponibilizado."
+      },
+      {
+        "pergunta": "A empresa oferece oportunidades de crescimento profissional?",
+        "resposta": "Sim, oferecemos programas internos de desenvolvimento de carreira, treinamentos, avaliações de desempenho e oportunidades de promoção."
+      },
+      {
+        "pergunta": "Como funcionam os feedbacks de desempenho?",
+        "resposta": "Os feedbacks são realizados periodicamente, geralmente a cada semestre, com foco em reconhecer pontos fortes e identificar oportunidades de melhoria."
+      }
+    ]
+  }
+  

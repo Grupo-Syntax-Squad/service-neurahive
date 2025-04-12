@@ -10,6 +10,7 @@ from sqlalchemy import (
     Table,
     func,
     text,
+    Float
 )
 from sqlalchemy.orm import Mapped, mapped_column, declarative_base, relationship
 
@@ -68,6 +69,10 @@ class Agent(Base):  # type: ignore[valid-type, misc]
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
+    theme: Mapped[str] = mapped_column(String, nullable=False)
+    behavior: Mapped[str] = mapped_column(String)
+    temperature: Mapped[float] = mapped_column(Float, default=0.5)
+    top_p: Mapped[float] = mapped_column(Float, default=0.5)
 
     users = relationship(
         "User",
