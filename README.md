@@ -115,7 +115,7 @@ from sqlalchemy import pool
 from alembic import context
 from src.database.models import Base
 rom dotenv import load_dotenv
-oad_dotenv('../.env')
+load_dotenv('../.env')
 #Configure environment variables
 database_url = os.getenv('DATABASE_URL')
 if not database_url:
