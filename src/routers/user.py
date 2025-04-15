@@ -9,7 +9,7 @@ from src.auth.auth_utils import Auth
 from src.schemas.user import GetUserResponse, PostUser, PutUserRequest
 from src.modules.user import CreateUser, DeactivateUser, GetUser, UpdateUser
 
-router = APIRouter(prefix="/users")
+router = APIRouter(prefix="/users", tags=["user"])
 
 
 @router.get("/")
@@ -27,7 +27,7 @@ def get_user(
     current_user: CurrentUser = Depends(Auth.get_current_user),
     session: Session = Depends(get_db),
 ) -> BasicResponse[list[GetUserResponse] | GetUserResponse]:
-    if (current_user.id != id):
+    if current_user.id != id:
         PermissionValidator(current_user, Role.ADMIN).execute()
     return GetUser(session, id).execute()()  # type: ignore[return-value]
 
@@ -48,7 +48,7 @@ def put_user(
     current_user: CurrentUser = Depends(Auth.get_current_user),
     session: Session = Depends(get_db),
 ) -> BasicResponse[None]:
-    if (current_user.id != request.id):
+    if current_user.id != request.id:
         PermissionValidator(current_user, Role.ADMIN).execute()
     return UpdateUser(session, request).execute()()  # type: ignore[return-value]
 
