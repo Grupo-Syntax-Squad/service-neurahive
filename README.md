@@ -204,7 +204,7 @@ export $(grep -v '^#' .env | xargs)
 
 ```bash
 cd src
-fastapi dev
+fastapi dev main.py --host 0.0.0.0
 ```
 
 <span id=#command-blocks></span>
