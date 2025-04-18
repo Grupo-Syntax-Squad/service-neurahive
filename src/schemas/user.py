@@ -1,7 +1,6 @@
 from datetime import datetime
 from pydantic import BaseModel
 
-from src.database.models import Agent
 from src.schemas.agent import AgentResponse
 
 

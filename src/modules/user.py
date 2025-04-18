@@ -1,6 +1,6 @@
 from enum import Enum
 from typing import List
-from sqlalchemy import text, update, and_
+from sqlalchemy import update, and_
 from src.constants import Role
 from src.auth.auth_utils import Auth
 from src.database.models import Agent, User
@@ -19,8 +19,8 @@ class CreateUser:
     def execute(self) -> BasicResponse[None]:
         self._validate_roles()
         createdUser = self._create_user()
-        if(len(self.request.selectedAgents) > 0):
-            self._add_agents_to_user(createdUser.id)
+        if len(self.request.selectedAgents) > 0:
+            self._add_agents_to_user(createdUser.id)  # type: ignore[union-attr]
         return BasicResponse(message="OK", status_code=status.HTTP_201_CREATED)
 
     def _validate_roles(self) -> None:
@@ -40,13 +40,19 @@ class CreateUser:
     def _create_user(self) -> User | None:
         hashed_password = Auth.get_password_hash(self.request.password)
         with self.session as db:
-            user = User(name=self.request.name, email=self.request.email, password=hashed_password, role=self.request.role, agents=[])
+            user = User(
+                name=self.request.name,
+                email=self.request.email,
+                password=hashed_password,
+                role=self.request.role,
+                agents=[],
+            )
             db.add(user)
             db.commit()
             db.refresh(user)
             return user
 
-    def _add_agents_to_user(self, user_id) -> None:
+    def _add_agents_to_user(self, user_id: int) -> GetUserResponse:
         with self.session as db:
             user: User = (
                 db.query(User).options(joinedload(User.agents)).get(user_id)  # type: ignore[assignment]
@@ -65,7 +71,6 @@ class CreateUser:
                     user.agents.append(agent)
             db.commit()
             return GetUserResponse.from_orm(user)
-    
 
 
 class Operation(Enum):
@@ -79,8 +84,8 @@ class GetUser:
         self._user_id = user_id
         self.operation: Operation | None = None
 
-    def execute(self) -> BasicResponse[list[GetUserResponse]]:
-        data: list[GetUserResponse]
+    def execute(self) -> BasicResponse[list[GetUserResponse] | GetUserResponse]:
+        data: list[GetUserResponse] | GetUserResponse
         try:
             self._define_operation()
             if self.operation == Operation.ALL_USERS:
@@ -109,7 +114,7 @@ class GetUser:
             user: User = (
                 db.query(User).options(joinedload(User.agents)).get(self._user_id)  # type: ignore[assignment]
             )
-            if (not user):
+            if not user:
                 raise HTTPException(
                     detail="User doesn't exists", status_code=status.HTTP_404_NOT_FOUND
                 )
