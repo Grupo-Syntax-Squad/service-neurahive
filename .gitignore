@@ -134,3 +134,5 @@ dist
 __pycache__/
 .pytest_cache/
 alembic
+.mypy_cache
+.ruff_cache
