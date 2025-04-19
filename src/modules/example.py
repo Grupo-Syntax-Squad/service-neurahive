@@ -9,7 +9,6 @@ from src.schemas.example import (
 )
 from src.schemas.basic_response import BasicResponse
 from src.database.models import Example
-from fastapi import status
 
 
 class GetExample:
@@ -50,9 +49,7 @@ class CreateExample:
 
     def execute(self) -> BasicResponse[None]:
         self._create_example()
-        return BasicResponse(
-            message="Example created", status_code=status.HTTP_201_CREATED
-        )
+        return BasicResponse(message="Example created")
 
     def _create_example(self) -> None:
         with self._session as session:
@@ -68,7 +65,7 @@ class DeleteExample:
 
     def execute(self) -> BasicResponse[None]:
         self._delete_example()
-        return BasicResponse(message="Example deleted", status_code=status.HTTP_200_OK)
+        return BasicResponse(message="Example deleted")
 
     def _delete_example(self) -> None:
         with self._session as session:

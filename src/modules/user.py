@@ -21,7 +21,7 @@ class CreateUser:
         createdUser = self._create_user()
         if len(self.request.selectedAgents) > 0:
             self._add_agents_to_user(createdUser.id)  # type: ignore[union-attr]
-        return BasicResponse(message="OK", status_code=status.HTTP_201_CREATED)
+        return BasicResponse(message="OK")
 
     def _validate_roles(self) -> None:
         roles = [Role.ADMIN.value, Role.CURATOR.value, Role.CLIENT.value]
