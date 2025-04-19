@@ -102,10 +102,10 @@ class Group(Base):  # type: ignore[valid-type, misc]
     )
 
 
-class Chat(Base):
+class Chat(Base):  # type: ignore[valid-type, misc]
     __tablename__ = "chat"
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
     agent_id: Mapped[int] = mapped_column(ForeignKey("agent.id"))
-    enabled: Mapped[bool] = mapped_column(Boolean)
+    enabled: Mapped[bool] = mapped_column(Boolean, server_default=text("TRUE"))

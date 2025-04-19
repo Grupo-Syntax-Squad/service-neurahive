@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from src.database.get_db import engine
 from src.database.models import Base
-from src.routers import auth, example, user, group, agent, websocket_chat
+from src.routers import auth, example, user, group, agent, websocket_chat, chat
 
 Base.metadata.create_all(bind=engine)
 
@@ -13,3 +13,4 @@ app.include_router(auth.router)
 app.include_router(group.router)
 app.include_router(agent.router)
 app.include_router(websocket_chat.router)
+app.include_router(chat.router)

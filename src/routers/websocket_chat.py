@@ -15,8 +15,8 @@ async def websocket_endpoint(websocket: WebSocket) -> None:
         while True:
             data = await websocket.receive_json()
             payload = ChatPayload(**data)
-            ai_response = await AiHandler(payload.user_id, payload.message).execute()
-            await manager.send_personal_message(ai_response)
+            ai_response = AiHandler(payload.user_id, payload.message).execute()
+            await manager.send_personal_message(ai_response, websocket)
     except WebSocketDisconnect:
         manager.disconnect(websocket)
         await manager.broadcast("Um usuário saiu da conexão.")

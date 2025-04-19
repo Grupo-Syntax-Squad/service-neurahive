@@ -11,12 +11,17 @@ class AiHandler:
         self._knowledge_base: str | None = None
         self._ai_response: AiResponse | None = None
 
-    async def execute(self) -> AiResponse:
+    def execute(self) -> AiResponse:
         try:
             self._format_user_message()
             self._load_knowledge_base()
-            await self._send_knowledge_base_to_ai()
-            await self._send_message_to_ai()
+            self._send_knowledge_base_to_ai()
+            self._send_message_to_ai()
+            if not self._ai_response:
+                raise WebSocketException(
+                    code=status.WS_1011_INTERNAL_ERROR,
+                    reason="Erro ao consultar o agente",
+                )
             return self._ai_response
         except Exception as e:
             raise WebSocketException(
@@ -31,11 +36,11 @@ class AiHandler:
         # TODO: Implement this method
         self._knowledge_base = "knowledge_base"
 
-    async def _send_knowledge_base_to_ai(self) -> None:
+    def _send_knowledge_base_to_ai(self) -> None:
         # TODO: Implement this method
         pass
 
-    async def _send_message_to_ai(self) -> None:
+    def _send_message_to_ai(self) -> None:
         # TODO: Implement this method
         self._ai_response = AiResponse(
             answer="Not implemented yet!", reponse_date=datetime.now()
