@@ -100,3 +100,12 @@ class Group(Base):  # type: ignore[valid-type, misc]
         cascade="all, delete",
         lazy="joined",
     )
+
+
+class Chat(Base):
+    __tablename__ = "chat"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    agent_id: Mapped[int] = mapped_column(ForeignKey("agent.id"))
+    enabled: Mapped[bool] = mapped_column(Boolean)
