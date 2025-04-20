@@ -17,3 +17,7 @@ class GetChatsResponse(BaseModel):
     user_id: int
     agent_id: int
     enabled: bool
+
+
+class DeleteChat(BaseModel):
+    chat_id: int
