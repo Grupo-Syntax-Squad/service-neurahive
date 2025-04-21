@@ -109,3 +109,13 @@ class Chat(Base):  # type: ignore[valid-type, misc]
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
     agent_id: Mapped[int] = mapped_column(ForeignKey("agent.id"))
     enabled: Mapped[bool] = mapped_column(Boolean, server_default=text("TRUE"))
+
+
+class ChatHistory(Base):  # type: ignore[valid-type, misc]
+    __tablename__ = "chat_history"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    chat_id: Mapped[int] = mapped_column(ForeignKey("chat.id"))
+    message: Mapped[str] = mapped_column(String)
+    is_user_message: Mapped[bool] = mapped_column(Boolean)
+    message_date: Mapped[datetime] = mapped_column(DateTime)

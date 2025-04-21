@@ -76,7 +76,7 @@ class RouterGetChats:
                 query += " AND " + " AND ".join(self._conditions)
 
             result = (
-                session.execute(text().bindparams(**self._query_params))
+                session.execute(text(query).bindparams(**self._query_params))
                 .mappings()
                 .all()
             )
