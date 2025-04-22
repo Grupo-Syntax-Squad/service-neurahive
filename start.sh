@@ -74,6 +74,7 @@ EOL
 
 # 6. Criar e aplicar migrações com Alembic
 print_message "Criando e aplicando migrações com Alembic..."
+alembic stamp head --purge
 alembic revision --autogenerate -m "Initial migration"
 alembic upgrade head
 
@@ -83,4 +84,5 @@ export $(grep -v '^#' .env | xargs)
 
 # 8. Iniciar a aplicação
 print_message "Iniciando a aplicação..."
+cd src
 exec uvicorn main:app --host 0.0.0.0 --port 8080
