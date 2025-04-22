@@ -9,7 +9,6 @@ function print_message() {
 
 # 3. Instalar dependências do Python e Node.js
 print_message "Instalando dependências do Python e Node.js..."
-cd service-neurahive
 pip install -r requirements.txt
 npm install
 
