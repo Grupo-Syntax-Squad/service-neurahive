@@ -17,7 +17,7 @@ from src.schemas.basic_response import BasicResponse
 from src.schemas.group import GroupResponse, PostGroup, UpdateGroupSchema
 from sqlalchemy.orm import Session
 
-router = APIRouter(prefix="/groups")
+router = APIRouter(prefix="/groups", tags=["Groups"])
 
 
 @router.get("/", response_model=BasicResponse[List[GroupResponse]])

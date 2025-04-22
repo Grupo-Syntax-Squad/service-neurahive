@@ -9,7 +9,7 @@ from src.auth.auth_utils import Auth
 from src.schemas.agent import AgentResponse, PostAgent
 from src.modules.agent import CreateAgent, DeleteAgent, GetAgent, UpdateAgent
 
-router = APIRouter(prefix="/agents")
+router = APIRouter(prefix="/agents", tags=["Agents"])
 
 
 @router.get("/")
