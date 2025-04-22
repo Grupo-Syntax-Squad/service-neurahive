@@ -29,6 +29,7 @@
 > </details>
 
 ##### After installed docker-compose:
+
 ```bash
 docker-compose up -d
 ```
@@ -40,10 +41,12 @@ docker-compose up -d
 > <strong><h4>Install python venv</h4></strong>
 <details>
 <summary><strong>Ubuntu</strong> (click here)</summary>
+   
 ```bash
 sudo apt install python3.12-venv
 ```
 ## Install dependencies and Activate virtual enviroment
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
@@ -58,6 +61,7 @@ pip install -r requirements.txt
 pip install virtualenv
 ```
 ## Install dependencies and Activate virtual enviroment
+
 ```bash
 python -m venv .venv
 .\.venv\Scripts\Activate
@@ -67,6 +71,7 @@ pip install -r requirementsWindows.txt
 </details>
 <details>
 <summary><strong>Mac</strong></summary>
+   
 ```bash
 brew install python@3.12
 ```
