@@ -84,4 +84,6 @@ export $(grep -v '^#' .env | xargs)
 
 # 8. Iniciar a aplicação
 print_message "Iniciando a aplicação..."
+print_message "diretório atual"
+pwd
 exec uvicorn main:app --host 0.0.0.0 --port 8080
