@@ -7,6 +7,11 @@ function print_message() {
     echo -e "\n\033[1;34m$1\033[0m\n"
 }
 
+# 1. Verificar diretório
+print_message "diretório atual"
+pwd
+ls
+
 # 3. Instalar dependências do Python e Node.js
 print_message "Instalando dependências do Python e Node.js..."
 pip install -r requirements.txt
@@ -84,6 +89,4 @@ export $(grep -v '^#' .env | xargs)
 
 # 8. Iniciar a aplicação
 print_message "Iniciando a aplicação..."
-print_message "diretório atual"
-pwd
 exec uvicorn main:app --host 0.0.0.0 --port 8080
