@@ -18,3 +18,12 @@ class GetKnowledgeBaseResponse(BaseModel):
     class Config:
         orm_mode = True
         from_attributes = True
+
+
+class GetKnowledgeBaseMetadataResponse(BaseModel):
+    id: int
+    name: str
+
+    class Config:
+        orm_mode = True
+        from_attributes = True

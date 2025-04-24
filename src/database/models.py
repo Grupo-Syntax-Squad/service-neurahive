@@ -104,7 +104,7 @@ class Group(Base):  # type: ignore[valid-type, misc]
     )
 
 
-class KnowledgeBase(Base): # type: ignore[valid-type, misc]
+class KnowledgeBase(Base):  # type: ignore[valid-type, misc]
     __tablename__ = "knowledge_base"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)

@@ -2,10 +2,12 @@ import csv
 import json
 from fastapi import UploadFile, HTTPException, status
 from sqlalchemy.orm import Session
-from src.schemas.knowledge_base import PostKnowledgeBaseResponse, GetKnowledgeBaseResponse
+from src.schemas.knowledge_base import PostKnowledgeBaseResponse, GetKnowledgeBaseResponse, GetKnowledgeBaseMetadataResponse
 from src.database.models import KnowledgeBase
 from src.schemas.basic_response import BasicResponse
 from io import StringIO
+from typing import List
+
 
 class UploadKnowledgeBase:
     def __init__(self, file: UploadFile, name: str, session: Session):
@@ -70,7 +72,7 @@ class ReadKnowledgeBase:
 
     def read_knowledge_base(self) -> GetKnowledgeBaseResponse | None:
         with self.session as db:
-            knowledge_base = db.query(KnowledgeBase).get(self.knowledge_base_id)
+            knowledge_base = db.get(KnowledgeBase, self.knowledge_base_id)
             if knowledge_base:
                 try:
                     parsed_data = json.loads(knowledge_base.data) if knowledge_base.data else {}
@@ -84,3 +86,23 @@ class ReadKnowledgeBase:
                     data=parsed_data
                 )
             return None
+
+
+class ListKnowledgeBases:
+    def __init__(self, session: Session):
+        self.session = session
+
+    def execute(self) -> BasicResponse[List[GetKnowledgeBaseMetadataResponse]]:
+        knowledge_bases = self.list_knowledge_bases()
+        return BasicResponse(data=knowledge_bases, status_code=status.HTTP_200_OK)
+
+    def list_knowledge_bases(self) -> List[GetKnowledgeBaseMetadataResponse]:
+        with self.session as db:
+            knowledge_bases = db.query(KnowledgeBase).all()
+            return [
+                GetKnowledgeBaseMetadataResponse(
+                    id=kb.id,
+                    name=kb.name,
+                )
+                for kb in knowledge_bases
+            ]
