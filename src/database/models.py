@@ -10,6 +10,7 @@ from sqlalchemy import (
     Table,
     func,
     text,
+    JSON,
 )
 from sqlalchemy.orm import Mapped, mapped_column, declarative_base, relationship
 
@@ -68,6 +69,7 @@ class Agent(Base):  # type: ignore[valid-type, misc]
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
+    knowledge_base_id: Mapped[int] = mapped_column(ForeignKey("knowledge_base.id"), unique=True)
 
     users = relationship(
         "User",
@@ -100,3 +102,11 @@ class Group(Base):  # type: ignore[valid-type, misc]
         cascade="all, delete",
         lazy="joined",
     )
+
+
+class KnowledgeBase(Base):  # type: ignore[valid-type, misc]
+    __tablename__ = "knowledge_base"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    data: Mapped[str] = mapped_column(JSON, nullable=False)

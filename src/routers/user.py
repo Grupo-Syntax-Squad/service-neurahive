@@ -9,7 +9,7 @@ from src.auth.auth_utils import Auth
 from src.schemas.user import GetUserResponse, PostUser, PutUserRequest
 from src.modules.user import CreateUser, DeactivateUser, GetUser, UpdateUser
 
-router = APIRouter(prefix="/users")
+router = APIRouter(prefix="/users", tags=["Users"])
 
 
 @router.get("/")
