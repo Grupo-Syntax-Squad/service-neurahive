@@ -26,7 +26,8 @@ class CreateAgent:
                 "Use uma linguagem acessível, mas mantenha profissionalismo."
             )
             agent = Agent(name=self.request.name, behavior=behavior, theme=self.request.theme,
-                        temperature=self.request.temperature, top_p=self.request.top_p)
+                        temperature=self.request.temperature, top_p=self.request.top_p,
+                        knowledge_base_id=self.request.knowledge_base_id)
 
             if self.request.groups:
                 groups = db.query(Group).filter(Group.id.in_(self.request.groups)).all()
@@ -49,6 +50,7 @@ class CreateAgent:
                 behavior=agent.behavior,
                 temperature=agent.temperature,
                 top_p=agent.top_p,
+                knowledge_base_id=agent.knowledge_base_id,
                 groups=[group.id for group in agent.groups]
             )
 
@@ -77,6 +79,7 @@ class GetAgent:
                 behavior=agent.behavior,
                 temperature=agent.temperature,
                 top_p=agent.top_p,
+                knowledge_base_id=agent.knowledge_base_id,
                 groups=[group.id for group in agent.groups]
             )
 
@@ -89,6 +92,7 @@ class GetAgent:
                 behavior=agent.behavior,
                 temperature=agent.temperature,
                 top_p=agent.top_p,
+                knowledge_base_id=agent.knowledge_base_id,
                 groups=[group.id for group in agent.groups]
             )
             for agent in agents
@@ -140,6 +144,7 @@ class UpdateAgent:
                 behavior=agent.behavior,
                 temperature=agent.temperature,
                 top_p=agent.top_p,
+                knowledge_base_id=agent.knowledge_base_id,
                 groups=[group.id for group in agent.groups]
             )
 

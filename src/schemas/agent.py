@@ -10,6 +10,7 @@ class AgentResponse(BaseModel):
     temperature: float
     top_p: float
     groups: Optional[List[int]] = Field(default_factory=lambda: [])
+    knowledge_base_id: Optional[int]
 
     class Config:
         orm_mode = True
@@ -23,6 +24,7 @@ class PostAgent(BaseModel):
     temperature: float = Field(default=0.5)
     top_p: float = Field(default=0.5)
     groups: Optional[List[int]] = []
+    knowledge_base_id: Optional[int]
 
     class Config:
         orm_mode = True

@@ -16,7 +16,7 @@ class LoginForm(BaseModel):
     password: str
 
 
-router = APIRouter(prefix="/auth")
+router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
 @router.post("/login", response_model=Token)
