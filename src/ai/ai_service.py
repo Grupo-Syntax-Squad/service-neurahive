@@ -4,12 +4,12 @@ from collections import deque
 from typing import Deque, Literal, TypedDict
 
 from src.database.models import Agent
+from src.settings import Settings
 
-AI_API_KEY = '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'
-AI_API_URL = 'https://openrouter.ai/api/v1/chat/completions'
+settings = Settings()
 
 headers = {
-    'Authorization': f'Bearer {AI_API_KEY}',
+    'Authorization': f'Bearer {settings.AI_API_KEY}',
     'Content-Type': 'application/json'
 }
 
@@ -59,7 +59,7 @@ def send_message(agent: Agent, pergunta_usuario: str) -> str:
         "max_tokens": 500
     }
 
-    response = requests.post(AI_API_URL, json=data, headers=headers)
+    response = requests.post(settings.AI_API_URL, json=data, headers=headers)
 
     if response.status_code == 200:
         result = response.json()

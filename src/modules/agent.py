@@ -22,7 +22,7 @@ class CreateAgent:
     def create_agent(self) -> AgentResponse:
         with self.session as db:
             behavior = self.request.behavior or (
-                "Responda de forma clara, útil e educada. Varie o estilo mantendo o sentido original."
+                "Responda de forma clara, útil e educada. Varie o estilo mantendo o sentido original. "
                 "Use uma linguagem acessível, mas mantenha profissionalismo."
             )
             agent = Agent(name=self.request.name, behavior=behavior, theme=self.request.theme,
