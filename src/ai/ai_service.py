@@ -13,12 +13,15 @@ headers = {
     'Content-Type': 'application/json'
 }
 
+
 class Message(TypedDict):
     role: Literal["system", "user", "assistant"]
     content: str
 
+
 # Cria a fila com limite de 20 mensagens (10 interações user + assistant)
 conversation_history: Deque[Message] = deque(maxlen=20)
+
 
 def send_message(agent: Agent, pergunta_usuario: str) -> str:
     with open('example.json', 'r', encoding='utf-8') as f:
@@ -62,6 +65,6 @@ def send_message(agent: Agent, pergunta_usuario: str) -> str:
         result = response.json()
         resposta_assistente: str = result['choices'][0]['message']['content']
         conversation_history.append({"role": "assistant", "content": resposta_assistente})
-        return(resposta_assistente)
+        return (resposta_assistente)
     else:
-        return(f"Falha ao buscar dados da API. Código de Status: {response.status_code}")
+        return (f"Falha ao buscar dados da API. Código de Status: {response.status_code}")

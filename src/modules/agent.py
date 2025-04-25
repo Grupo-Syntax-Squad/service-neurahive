@@ -136,6 +136,10 @@ class UpdateAgent:
             return AgentResponse(
                 id=agent.id,
                 name=agent.name,
+                theme=agent.theme,
+                behavior=agent.behavior,
+                temperature=agent.temperature,
+                top_p=agent.top_p,
                 groups=[group.id for group in agent.groups]
             )
 
