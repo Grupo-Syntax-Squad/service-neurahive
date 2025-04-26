@@ -117,7 +117,8 @@ class Chat(Base):  # type: ignore[valid-type, misc]
     agent_id: Mapped[int] = mapped_column(ForeignKey("agent.id"))
     enabled: Mapped[bool] = mapped_column(Boolean, server_default=text("TRUE"))
 
-    def get_chat_by_id(session: Session, chat_id: int) -> "Chat" | None:
+    @staticmethod
+    def get_chat_by_id(session: Session, chat_id: int) -> Chat | None:  # noqa: F821
         query = select(Chat).where(Chat.id == chat_id)
         result = session.execute(query)
         return result.scalars().first()
@@ -132,6 +133,7 @@ class ChatHistory(Base):  # type: ignore[valid-type, misc]
     is_user_message: Mapped[bool] = mapped_column(Boolean)
     message_date: Mapped[datetime] = mapped_column(DateTime)
 
+    @staticmethod
     def add_chat_history(
         session: Session,
         chat_id: int,
