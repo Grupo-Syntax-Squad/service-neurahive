@@ -2,9 +2,20 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from src.database.get_db import get_db
-from src.modules.chat import RouterCreateChat, RouterDeleteChat, RouterGetChats
+from src.modules.chat import (
+    RouterCreateChat,
+    RouterDeleteChat,
+    RouterGetChatHistory,
+    RouterGetChats,
+)
 from src.schemas.basic_response import BasicResponse
-from src.schemas.chat import GetChatsRequest, GetChatsResponse, PostChat
+from src.schemas.chat import (
+    GetChatHistoryRequest,
+    GetChatHistoryResponse,
+    GetChatsRequest,
+    GetChatsResponse,
+    PostChat,
+)
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -31,3 +42,10 @@ def delete_chat(
 ) -> BasicResponse[None]:
     # TODO: Implement profile validation here
     return RouterDeleteChat(session, chat_id).execute()
+
+
+@router.get("/")
+def get_chat_history(
+    params: GetChatHistoryRequest, session: Session = Depends(get_db)
+) -> BasicResponse[list[GetChatHistoryResponse]]:
+    return RouterGetChatHistory(session, params).execute()

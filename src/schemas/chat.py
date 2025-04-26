@@ -1,3 +1,4 @@
+from datetime import datetime
 from pydantic import BaseModel
 
 
@@ -21,3 +22,15 @@ class GetChatsResponse(BaseModel):
 
 class DeleteChat(BaseModel):
     chat_id: int
+
+
+class GetChatHistoryRequest(BaseModel):
+    chat_id: int
+
+
+class GetChatHistoryResponse(BaseModel):
+    id: int
+    chat_id: int
+    message: str
+    is_user_message: bool
+    message_date: datetime

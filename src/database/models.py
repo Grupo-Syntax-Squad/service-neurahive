@@ -9,9 +9,16 @@ from sqlalchemy import (
     String,
     Table,
     func,
+    select,
     text,
 )
-from sqlalchemy.orm import Mapped, mapped_column, declarative_base, relationship
+from sqlalchemy.orm import (
+    Mapped,
+    mapped_column,
+    declarative_base,
+    relationship,
+    Session,
+)
 
 Base = declarative_base()
 
@@ -109,6 +116,11 @@ class Chat(Base):  # type: ignore[valid-type, misc]
     user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
     agent_id: Mapped[int] = mapped_column(ForeignKey("agent.id"))
     enabled: Mapped[bool] = mapped_column(Boolean, server_default=text("TRUE"))
+
+    def get_chat_by_id(session: Session, chat_id: int) -> "Chat" | None:
+        query = select(Chat).where(Chat.id == chat_id)
+        result = session.execute(query)
+        return result.scalars().first()
 
 
 class ChatHistory(Base):  # type: ignore[valid-type, misc]

@@ -1,7 +1,13 @@
 from sqlalchemy import select, text, update
-from src.database.models import Agent, Chat, User
+from src.database.models import Agent, Chat, ChatHistory, User
 from src.schemas.basic_response import BasicResponse
-from src.schemas.chat import GetChatsRequest, GetChatsResponse, PostChat
+from src.schemas.chat import (
+    GetChatHistoryRequest,
+    GetChatHistoryResponse,
+    GetChatsRequest,
+    GetChatsResponse,
+    PostChat,
+)
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
@@ -121,9 +127,7 @@ class RouterDeleteChat:
             )
 
     def _verify_chat_exists(self, session: Session) -> None:
-        query = select(Chat).where(Chat.id == self._chat_id)
-        result = session.execute(query)
-        if len(result.scalars().all()) < 1:
+        if Chat.get_chat_by_id(session, self._chat_id) is None:
             raise HTTPException(
                 detail=f"Chat com o id {self._chat_id} não existe!",
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -134,3 +138,48 @@ class RouterDeleteChat:
             update(Chat).values(enabled=False).where(Chat.id == self._chat_id)
         )
         session.commit()
+
+
+class RouterGetChatHistory:
+    def __init__(self, session: Session, params: GetChatHistoryRequest):
+        self._session = session
+        self._params = params
+        self._chat_history: list[ChatHistory]
+        self._response: list[GetChatHistoryResponse]
+
+    def execute(self) -> BasicResponse[list[GetChatHistoryResponse]]:
+        try:
+            with self._session as session:
+                self._verify_chat_exists(session)
+                self._get_chat_history(session)
+                self._format_response()
+                return BasicResponse(data=self._response)
+        except Exception as e:
+            raise HTTPException(
+                detail=f"Erro ao buscar o histórico do chat de id {self._params.chat_id}: {e}",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    def _verify_chat_exists(self, session: Session) -> None:
+        if Chat.get_chat_by_id(session, self._params.chat_id) is None:
+            raise HTTPException(
+                detail=f"Chat com o id {self._params.chat_id} não existe!",
+                status_code=status.HTTP_404_NOT_FOUND,
+            )
+
+    def _get_chat_history(self, session: Session) -> None:
+        query = select(ChatHistory).where(ChatHistory.chat_id == self._params.chat_id)
+        result = session.execute(query)
+        self._chat_history = list(result.scalars().all())
+
+    def _format_response(self) -> None:
+        self._response = [
+            GetChatHistoryResponse(
+                id=chat_history.id,
+                chat_id=chat_history.chat_id,
+                message=chat_history.message,
+                is_user_message=chat_history.is_user_message,
+                message_date=chat_history.message_date,
+            )
+            for chat_history in self._chat_history
+        ]
