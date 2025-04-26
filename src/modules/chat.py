@@ -34,8 +34,8 @@ class RouterCreateChat:
 
     def _verify_user_exists(self, session: Session) -> None:
         query = select(User).where(User.id == self._params.user_id)
-        result = session.execute(query)
-        if len(result.scalars().all()) < 1:
+        result = session.execute(query).unique()
+        if result.scalars().first() is None:
             raise HTTPException(
                 detail=f"Usuário com o id {self._params.user_id} não existe!",
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -43,8 +43,8 @@ class RouterCreateChat:
 
     def _verify_agent_exists(self, session: Session) -> None:
         query = select(Agent).where(Agent.id == self._params.agent_id)
-        result = session.execute(query)
-        if len(result.scalars().all()) < 1:
+        result = session.execute(query).unique()
+        if result.scalars().first() is None:
             raise HTTPException(
                 detail=f"Agente com o id {self._params.agent_id} não existe!",
                 status_code=status.HTTP_404_NOT_FOUND,
