@@ -1,11 +1,12 @@
 import time
 import logging
+from typing import Any
 from fastapi import Request
 
 logger = logging.getLogger(__name__)
 
 
-async def log_requests(request: Request, call_next):
+async def log_requests(request: Request, call_next) -> Any:  # type: ignore[no-untyped-def]
     idem = f"{request.method} {request.url.path}"
 
     logger.info(f"🟡 {idem}")

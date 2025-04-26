@@ -125,44 +125,45 @@ class PopulateDatabase:
             session.commit()
 
     def _initialize_agents(self) -> None:
-        self._agents = [
-            Agent(
-                name="Agent 1",
-                users=[],
-                groups=[],
-                theme="Administração",
-                behavior="Responda de forma clara, útil e educada. Varie o estilo mantendo o sentido original. "
-                "Use uma linguagem acessível, mas mantenha profissionalismo.",
-                knowledge_base_id=self._knowledge_bases[0].id,
-            ),
-            Agent(
-                name="Agent 2",
-                users=[],
-                groups=[],
-                theme="Setor de vendas",
-                behavior="Responda de forma clara, útil e educada. Varie o estilo mantendo o sentido original. "
-                "Use uma linguagem acessível, mas mantenha profissionalismo.",
-                knowledge_base_id=self._knowledge_bases[1].id,
-            ),
-            Agent(
-                name="Agent 3",
-                users=[],
-                groups=[],
-                theme="Financeiro",
-                behavior="Responda de forma clara, útil e educada. Varie o estilo mantendo o sentido original. "
-                "Use uma linguagem acessível, mas mantenha profissionalismo.",
-                knowledge_base_id=self._knowledge_bases[2].id,
-            ),
-            Agent(
-                name="Agent 4",
-                users=[],
-                groups=[],
-                theme="TI",
-                behavior="Responda de forma clara, útil e educada. Varie o estilo mantendo o sentido original. "
-                "Use uma linguagem acessível, mas mantenha profissionalismo.",
-                knowledge_base_id=self._knowledge_bases[3].id,
-            ),
-        ]
+        if self._knowledge_bases:
+            self._agents = [
+                Agent(
+                    name="Agent 1",
+                    users=[],
+                    groups=[],
+                    theme="Administração",
+                    behavior="Responda de forma clara, útil e educada. Varie o estilo mantendo o sentido original. "
+                    "Use uma linguagem acessível, mas mantenha profissionalismo.",
+                    knowledge_base_id=self._knowledge_bases[0].id,
+                ),
+                Agent(
+                    name="Agent 2",
+                    users=[],
+                    groups=[],
+                    theme="Setor de vendas",
+                    behavior="Responda de forma clara, útil e educada. Varie o estilo mantendo o sentido original. "
+                    "Use uma linguagem acessível, mas mantenha profissionalismo.",
+                    knowledge_base_id=self._knowledge_bases[1].id,
+                ),
+                Agent(
+                    name="Agent 3",
+                    users=[],
+                    groups=[],
+                    theme="Financeiro",
+                    behavior="Responda de forma clara, útil e educada. Varie o estilo mantendo o sentido original. "
+                    "Use uma linguagem acessível, mas mantenha profissionalismo.",
+                    knowledge_base_id=self._knowledge_bases[2].id,
+                ),
+                Agent(
+                    name="Agent 4",
+                    users=[],
+                    groups=[],
+                    theme="TI",
+                    behavior="Responda de forma clara, útil e educada. Varie o estilo mantendo o sentido original. "
+                    "Use uma linguagem acessível, mas mantenha profissionalismo.",
+                    knowledge_base_id=self._knowledge_bases[3].id,
+                ),
+            ]
 
     def _populate_agents(self, session: Session) -> None:
         if self._agents:
