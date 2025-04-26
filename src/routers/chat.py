@@ -13,6 +13,7 @@ router = APIRouter(prefix="/chat", tags=["chat"])
 def create_chat(
     params: PostChat, session: Session = Depends(get_db)
 ) -> BasicResponse[None]:
+    # TODO: Implement profile validation here
     return RouterCreateChat(session, params).execute()
 
 
@@ -20,6 +21,7 @@ def create_chat(
 def get_chats(
     params: GetChatsRequest = Query(), session: Session = Depends(get_db)
 ) -> BasicResponse[list[GetChatsResponse]]:
+    # TODO: Implement profile validation here
     return RouterGetChats(session, params).execute()
 
 
@@ -27,4 +29,5 @@ def get_chats(
 def delete_chat(
     chat_id: int, session: Session = Depends(get_db)
 ) -> BasicResponse[None]:
+    # TODO: Implement profile validation here
     return RouterDeleteChat(session, chat_id).execute()
