@@ -110,7 +110,9 @@ class RouterDeleteChat:
 
     def execute(self) -> BasicResponse[None]:
         try:
-            self._delete_chat()
+            with self._session as session:
+                self._verify_chat_exists(session)
+                self._delete_chat(session)
             return BasicResponse(message="Chat deletado com sucesso!")
         except Exception as e:
             raise HTTPException(
@@ -118,9 +120,17 @@ class RouterDeleteChat:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-    def _delete_chat(self) -> None:
-        with self._session as session:
-            session.execute(
-                update(Chat).values(enabled=False).where(Chat.id == self._chat_id)
+    def _verify_chat_exists(self, session: Session) -> None:
+        query = select(Chat).where(Chat.id == self._chat_id)
+        result = session.execute(query)
+        if len(result.scalars().all()) < 1:
+            raise HTTPException(
+                detail=f"Chat com o id {self._chat_id} não existe!",
+                status_code=status.HTTP_404_NOT_FOUND,
             )
-            session.commit()
+
+    def _delete_chat(self, session: Session) -> None:
+        session.execute(
+            update(Chat).values(enabled=False).where(Chat.id == self._chat_id)
+        )
+        session.commit()
