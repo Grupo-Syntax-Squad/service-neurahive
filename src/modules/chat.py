@@ -1,5 +1,5 @@
-from sqlalchemy import text, update
-from src.database.models import Chat
+from sqlalchemy import select, text, update
+from src.database.models import Agent, Chat, User
 from src.schemas.basic_response import BasicResponse
 from src.schemas.chat import GetChatsRequest, GetChatsResponse, PostChat
 from sqlalchemy.orm import Session
@@ -15,6 +15,8 @@ class RouterCreateChat:
     def execute(self) -> BasicResponse[None]:
         try:
             with self._session as session:
+                self._verify_user_exists(session)
+                self._verify_agent_exists(session)
                 self._create_chat(session)
                 session.commit()
             return BasicResponse(message="Chat criado com sucesso!")
@@ -22,6 +24,24 @@ class RouterCreateChat:
             raise HTTPException(
                 detail=f"Erro ao criar o chat: {e}.",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    def _verify_user_exists(self, session: Session) -> None:
+        query = select(User).where(User.id == self._params.user_id)
+        result = session.execute(query)
+        if len(result.scalars().all()) < 1:
+            raise HTTPException(
+                detail=f"Usuário com o id {self._params.user_id} não existe!",
+                status_code=status.HTTP_404_NOT_FOUND,
+            )
+
+    def _verify_agent_exists(self, session: Session) -> None:
+        query = select(Agent).where(Agent.id == self._params.agent_id)
+        result = session.execute(query)
+        if len(result.scalars().all()) < 1:
+            raise HTTPException(
+                detail=f"Agente com o id {self._params.agent_id} não existe!",
+                status_code=status.HTTP_404_NOT_FOUND,
             )
 
     def _create_chat(self, session: Session) -> None:
