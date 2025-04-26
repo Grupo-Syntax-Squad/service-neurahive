@@ -7,11 +7,6 @@ from fastapi import status
 
 settings = Settings()
 
-headers = {
-    "Authorization": f"Bearer {settings.AI_API_KEY}",
-    "Content-Type": "application/json",
-}
-
 
 class Message(TypedDict):
     role: Literal["system", "user", "assistant"]
@@ -22,10 +17,15 @@ class GeminiComunicationHandler:
     def __init__(
         self, agent: Agent, user_question: str, questions: list[str], answers: list[str]
     ) -> None:
+        global settings
         self._agent = agent
         self._user_question = user_question
         self._questions = questions
         self._answers = answers
+        self._headers = {
+            "Authorization": f"Bearer {settings.AI_API_KEY}",
+            "Content-Type": "application/json",
+        }
         self._conversation_history: Deque[Message] = deque(maxlen=20)
         self._faq_context: str | None = None
         self._system_message: dict[str, str] | None = None
@@ -91,7 +91,7 @@ class GeminiComunicationHandler:
         self._response = requests.post(
             settings.AI_API_URL,  # type: ignore[arg-type]
             json=self._data,
-            headers=headers,
+            headers=self._headers,
         )
 
     def _validate_gemini_response(self) -> None:
