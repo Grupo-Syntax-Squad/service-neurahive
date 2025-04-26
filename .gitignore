@@ -139,3 +139,4 @@ __pycache__/
 alembic
 .mypy_cache
 .ruff_cache
+.vscode

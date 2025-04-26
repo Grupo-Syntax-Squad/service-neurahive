@@ -73,16 +73,10 @@ class ReadKnowledgeBase:
         with self.session as db:
             knowledge_base = db.get(KnowledgeBase, self.knowledge_base_id)
             if knowledge_base:
-                try:
-                    parsed_data = (
-                        json.loads(knowledge_base.data) if knowledge_base.data else {}
-                    )
-                except json.JSONDecodeError as e:
-                    print(f"Erro ao decodificar JSON: {e}")
-                    parsed_data = {}
-
                 return GetKnowledgeBaseResponse(
-                    id=knowledge_base.id, name=knowledge_base.name, data=parsed_data
+                    id=knowledge_base.id,
+                    name=knowledge_base.name,
+                    data=knowledge_base.data,  # type: ignore [arg-type]
                 )
             return None
 

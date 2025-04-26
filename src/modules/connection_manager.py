@@ -1,3 +1,4 @@
+from typing import Any
 from fastapi import WebSocket
 
 from src.schemas.ai import AiResponse
@@ -15,7 +16,7 @@ class ConnectionManager:
         self.active_connections.remove(websocket)
 
     async def send_personal_message(
-        self, message: AiResponse | str, websocket: WebSocket
+        self, message: AiResponse | str | dict[str, Any], websocket: WebSocket
     ) -> None:
         await websocket.send_json(message)
 

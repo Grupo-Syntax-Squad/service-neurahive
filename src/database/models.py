@@ -77,8 +77,8 @@ class Agent(Base):  # type: ignore[valid-type, misc]
     __tablename__ = "agent"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String, nullable=False)
-    theme: Mapped[str] = mapped_column(String, nullable=False)
+    name: Mapped[str] = mapped_column(String)
+    theme: Mapped[str] = mapped_column(String)
     behavior: Mapped[str] = mapped_column(String)
     temperature: Mapped[float] = mapped_column(Float, default=0.5)
     top_p: Mapped[float] = mapped_column(Float, default=0.5)
