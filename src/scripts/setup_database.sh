@@ -11,6 +11,11 @@ sudo docker rm postgres || true
 echo "Subindo containers com Docker Compose..."
 sudo docker-compose up -d
 
+echo "Aguardando o PostgreSQL aceitar conexões..."
+until sudo docker exec postgres pg_isready -U postgres > /dev/null 2>&1; do
+  sleep 1
+done
+
 echo "Executando migrações com Alembic..."
 alembic stamp head --purge
 alembic revision --autogenerate -m "Auto migration"

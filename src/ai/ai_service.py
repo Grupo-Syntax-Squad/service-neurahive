@@ -61,7 +61,6 @@ def send_message(agent: Agent, pergunta_usuario: str) -> str:
         "max_tokens": 500,
     }
 
-    # @FIXME: Fix mypy error in this request
     response = requests.post(settings.AI_API_URL, json=data, headers=headers)  # type: ignore[arg-type]
 
     if response.status_code == 200:
