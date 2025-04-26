@@ -33,11 +33,13 @@ class Settings:
         self.NO_AUTH = os.getenv("NO_AUTH", False)
         self.AI_API_KEY = os.getenv("AI_API_KEY")
         self.AI_API_URL = os.getenv("AI_API_URL")
+        self.AI_MODEL = os.getenv("AI_MODEL")
 
         if (
             not self.DATABASE_URL
             or not self.SECRET_KEY
             or not self.AI_API_KEY
             or not self.AI_API_URL
+            or not self.AI_MODEL
         ):
             raise ValueError("Required environment variables are missing!")

@@ -76,9 +76,10 @@ class GeminiComunicationHandler:
         }
 
     def _initialize_data(self) -> None:
+        global settings
         messages = [self._system_message] + list(self._conversation_history)
         self._data = {
-            "model": "google/gemini-2.0-flash-exp:free",
+            "model": settings.AI_MODEL,
             "messages": messages,
             "temperature": self._agent.temperature,  # Variedade nas respostas
             "top_p": self._agent.top_p,  # Garante respostas variadas e criativas
