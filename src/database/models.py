@@ -131,3 +131,19 @@ class ChatHistory(Base):  # type: ignore[valid-type, misc]
     message: Mapped[str] = mapped_column(String)
     is_user_message: Mapped[bool] = mapped_column(Boolean)
     message_date: Mapped[datetime] = mapped_column(DateTime)
+
+    def add_chat_history(
+        session: Session,
+        chat_id: int,
+        message: str,
+        is_user_message: bool,
+        message_date: datetime,
+    ) -> None:
+        chat_history = ChatHistory(
+            chat_id=chat_id,
+            message=message,
+            is_user_message=is_user_message,
+            message_date=message_date,
+        )
+        session.add(chat_history)
+        session.commit()

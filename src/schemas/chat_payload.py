@@ -1,6 +1,8 @@
+from datetime import datetime
 from pydantic import BaseModel
 
 
 class ChatPayload(BaseModel):
-    user_id: int
+    chat_id: int
     message: str
+    message_date: datetime
