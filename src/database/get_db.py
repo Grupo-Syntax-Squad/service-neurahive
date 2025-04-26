@@ -5,7 +5,7 @@ from src.settings import Settings
 
 settings = Settings()
 
-engine = create_engine(settings.DATABASE_URL, echo=True)
+engine = create_engine(settings.DATABASE_URL)
 SessionFactory = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 

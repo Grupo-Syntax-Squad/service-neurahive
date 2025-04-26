@@ -9,8 +9,8 @@ from src.settings import Settings
 settings = Settings()
 
 headers = {
-    'Authorization': f'Bearer {settings.AI_API_KEY}',
-    'Content-Type': 'application/json'
+    "Authorization": f"Bearer {settings.AI_API_KEY}",
+    "Content-Type": "application/json",
 }
 
 
@@ -24,13 +24,15 @@ conversation_history: Deque[Message] = deque(maxlen=20)
 
 
 def send_message(agent: Agent, pergunta_usuario: str) -> str:
-    with open('example.json', 'r', encoding='utf-8') as f:
+    with open("example.json", "r", encoding="utf-8") as f:
         faq_data = json.load(f)
 
-    faq_context = "\n".join([
-        f"Pergunta: {item['pergunta']}\nResposta: {item['resposta']}"
-        for item in faq_data["faq"]
-    ])
+    faq_context = "\n".join(
+        [
+            f"Pergunta: {item['pergunta']}\nResposta: {item['resposta']}"
+            for item in faq_data["faq"]
+        ]
+    )
 
     global conversation_history
 
@@ -44,7 +46,7 @@ def send_message(agent: Agent, pergunta_usuario: str) -> str:
             "diga qual o tema e não fale sobre nada relacionado à pergunta do usuário e nesse caso pode ser uma resposta mais curta."
             f"{agent.behavior} \n\n"
             f"{faq_context}"
-        )
+        ),
     }
 
     messages = [system_message] + list(conversation_history)
@@ -56,15 +58,18 @@ def send_message(agent: Agent, pergunta_usuario: str) -> str:
         "top_p": 1.0,  # Garante respostas variadas e criativas
         "n": 1,  # Uma resposta por vez
         "stream": False,  # Resposta completa de uma vez
-        "max_tokens": 500
+        "max_tokens": 500,
     }
 
-    response = requests.post(settings.AI_API_URL, json=data, headers=headers)
+    # @FIXME: Fix mypy error in this request
+    response = requests.post(settings.AI_API_URL, json=data, headers=headers)  # type: ignore[arg-type]
 
     if response.status_code == 200:
         result = response.json()
-        resposta_assistente: str = result['choices'][0]['message']['content']
-        conversation_history.append({"role": "assistant", "content": resposta_assistente})
-        return (resposta_assistente)
+        resposta_assistente: str = result["choices"][0]["message"]["content"]
+        conversation_history.append(
+            {"role": "assistant", "content": resposta_assistente}
+        )
+        return resposta_assistente
     else:
-        return (f"Falha ao buscar dados da API. Código de Status: {response.status_code}")
+        return f"Falha ao buscar dados da API. Código de Status: {response.status_code}"

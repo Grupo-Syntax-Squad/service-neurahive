@@ -2,7 +2,11 @@ import csv
 import json
 from fastapi import UploadFile, HTTPException, status
 from sqlalchemy.orm import Session
-from src.schemas.knowledge_base import PostKnowledgeBaseResponse, GetKnowledgeBaseResponse, GetKnowledgeBaseMetadataResponse
+from src.schemas.knowledge_base import (
+    PostKnowledgeBaseResponse,
+    GetKnowledgeBaseResponse,
+    GetKnowledgeBaseMetadataResponse,
+)
 from src.database.models import KnowledgeBase
 from src.schemas.basic_response import BasicResponse
 from io import StringIO
@@ -19,7 +23,7 @@ class UploadKnowledgeBase:
         if self.file.filename and not self.file.filename.endswith((".csv", ".txt")):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Only .csv and .txt files are allowed"
+                detail="Only .csv and .txt files are allowed",
             )
 
         contents = await self.file.read()
@@ -42,19 +46,13 @@ class UploadKnowledgeBase:
 
         kb = KnowledgeBase(
             name=self.name,
-            data=json.dumps({
-                "questions": questions,
-                "answers": answers
-            })
+            data=json.dumps({"questions": questions, "answers": answers}),
         )
         self.session.add(kb)
         self.session.commit()
         self.session.refresh(kb)
 
-        return PostKnowledgeBaseResponse(
-            id=kb.id,
-            name=kb.name
-        )
+        return PostKnowledgeBaseResponse(id=kb.id, name=kb.name)
 
 
 class ReadKnowledgeBase:
@@ -65,9 +63,10 @@ class ReadKnowledgeBase:
     def execute(self) -> BasicResponse[GetKnowledgeBaseResponse]:
         knowledge_base = self.read_knowledge_base()
         if knowledge_base:
-            return BasicResponse(data=knowledge_base, status_code=status.HTTP_200_OK)
-        return BasicResponse(
-            message="Base de conhecimento não encontrada", status_code=status.HTTP_404_NOT_FOUND
+            return BasicResponse(data=knowledge_base)
+        raise HTTPException(
+            detail="Base de conhecimento não encontrada",
+            status_code=status.HTTP_404_NOT_FOUND,
         )
 
     def read_knowledge_base(self) -> GetKnowledgeBaseResponse | None:
@@ -75,15 +74,15 @@ class ReadKnowledgeBase:
             knowledge_base = db.get(KnowledgeBase, self.knowledge_base_id)
             if knowledge_base:
                 try:
-                    parsed_data = json.loads(knowledge_base.data) if knowledge_base.data else {}
+                    parsed_data = (
+                        json.loads(knowledge_base.data) if knowledge_base.data else {}
+                    )
                 except json.JSONDecodeError as e:
                     print(f"Erro ao decodificar JSON: {e}")
                     parsed_data = {}
 
                 return GetKnowledgeBaseResponse(
-                    id=knowledge_base.id,
-                    name=knowledge_base.name,
-                    data=parsed_data
+                    id=knowledge_base.id, name=knowledge_base.name, data=parsed_data
                 )
             return None
 
@@ -94,7 +93,7 @@ class ListKnowledgeBases:
 
     def execute(self) -> BasicResponse[List[GetKnowledgeBaseMetadataResponse]]:
         knowledge_bases = self.list_knowledge_bases()
-        return BasicResponse(data=knowledge_bases, status_code=status.HTTP_200_OK)
+        return BasicResponse(data=knowledge_bases)
 
     def list_knowledge_bases(self) -> List[GetKnowledgeBaseMetadataResponse]:
         with self.session as db:

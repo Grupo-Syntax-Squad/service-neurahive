@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Dict, Any
 
+
 class PostKnowledgeBaseResponse(BaseModel):
     id: int
     name: str

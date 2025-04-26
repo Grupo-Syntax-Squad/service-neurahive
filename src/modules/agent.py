@@ -13,11 +13,7 @@ class CreateAgent:
 
     def execute(self) -> BasicResponse[AgentResponse]:
         agent = self.create_agent()
-        return BasicResponse(
-            data=agent,
-            message="Agent created successfully.",
-            status_code=status.HTTP_201_CREATED,
-        )
+        return BasicResponse(data=agent, message="Agent created successfully.")
 
     def create_agent(self) -> AgentResponse:
         with self.session as db:
@@ -25,9 +21,14 @@ class CreateAgent:
                 "Responda de forma clara, útil e educada. Varie o estilo mantendo o sentido original. "
                 "Use uma linguagem acessível, mas mantenha profissionalismo."
             )
-            agent = Agent(name=self.request.name, behavior=behavior, theme=self.request.theme,
-                        temperature=self.request.temperature, top_p=self.request.top_p,
-                        knowledge_base_id=self.request.knowledge_base_id)
+            agent = Agent(
+                name=self.request.name,
+                behavior=behavior,
+                theme=self.request.theme,
+                temperature=self.request.temperature,
+                top_p=self.request.top_p,
+                knowledge_base_id=self.request.knowledge_base_id,
+            )
 
             if self.request.groups:
                 groups = db.query(Group).filter(Group.id.in_(self.request.groups)).all()
@@ -35,7 +36,7 @@ class CreateAgent:
                 if len(groups) != len(self.request.groups):
                     raise HTTPException(
                         status_code=status.HTTP_404_NOT_FOUND,
-                        detail="One or more groups not found"
+                        detail="One or more groups not found",
                     )
                 agent.groups = groups
 
@@ -51,7 +52,7 @@ class CreateAgent:
                 temperature=agent.temperature,
                 top_p=agent.top_p,
                 knowledge_base_id=agent.knowledge_base_id,
-                groups=[group.id for group in agent.groups]
+                groups=[group.id for group in agent.groups],
             )
 
 
@@ -60,17 +61,20 @@ class GetAgent:
         self._session = session
         self._agent_id = agent_id
 
-    def execute(self) -> GetAgentBasicResponse[Union[AgentResponse, list[AgentResponse]]]:
+    def execute(
+        self,
+    ) -> GetAgentBasicResponse[Union[AgentResponse, list[AgentResponse]]]:
         agent_data = self._get_agent()
         return GetAgentBasicResponse(data=agent_data)
 
     def _get_agent(self) -> list[AgentResponse] | AgentResponse:
         if self._agent_id:
-            agent = self._session.query(Agent).filter(Agent.id == self._agent_id).first()
+            agent = (
+                self._session.query(Agent).filter(Agent.id == self._agent_id).first()
+            )
             if not agent:
                 raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Agent not found"
+                    status_code=status.HTTP_404_NOT_FOUND, detail="Agent not found"
                 )
             return AgentResponse(
                 id=agent.id,
@@ -80,7 +84,7 @@ class GetAgent:
                 temperature=agent.temperature,
                 top_p=agent.top_p,
                 knowledge_base_id=agent.knowledge_base_id,
-                groups=[group.id for group in agent.groups]
+                groups=[group.id for group in agent.groups],
             )
 
         agents = self._session.query(Agent).all()
@@ -93,7 +97,7 @@ class GetAgent:
                 temperature=agent.temperature,
                 top_p=agent.top_p,
                 knowledge_base_id=agent.knowledge_base_id,
-                groups=[group.id for group in agent.groups]
+                groups=[group.id for group in agent.groups],
             )
             for agent in agents
         ]
@@ -107,11 +111,7 @@ class UpdateAgent:
 
     def execute(self) -> BasicResponse[AgentResponse]:
         agent = self.update_agent()
-        return BasicResponse(
-            data=agent,
-            message="Agent updated successfully.",
-            status_code=status.HTTP_200_OK,
-        )
+        return BasicResponse(data=agent, message="Agent updated successfully.")
 
     def update_agent(self) -> AgentResponse:
         with self.session as db:
@@ -130,7 +130,7 @@ class UpdateAgent:
                 if len(groups) != len(self.request.groups):
                     raise HTTPException(
                         status_code=status.HTTP_404_NOT_FOUND,
-                        detail="One or more groups not found"
+                        detail="One or more groups not found",
                     )
                 agent.groups = groups
 
@@ -145,7 +145,7 @@ class UpdateAgent:
                 temperature=agent.temperature,
                 top_p=agent.top_p,
                 knowledge_base_id=agent.knowledge_base_id,
-                groups=[group.id for group in agent.groups]
+                groups=[group.id for group in agent.groups],
             )
 
 
@@ -157,7 +157,9 @@ class DeleteAgent:
     def execute(self) -> BasicResponse[None]:
         agent = self._session.query(Agent).filter(Agent.id == self._agent_id).first()
         if not agent:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Agent not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Agent not found"
+            )
 
         self._session.delete(agent)
         self._session.commit()
