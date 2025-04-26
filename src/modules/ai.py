@@ -57,7 +57,7 @@ class AiHandler:
     def _send_message_to_ai(self) -> None:
         # TODO: Implement this method
         self._ai_response = AiResponse(
-            answer="Not implemented yet!", reponse_date=datetime.now()
+            answer="Not implemented yet!", response_date=datetime.now()
         )
 
     def _add_ai_response_to_history(self, session: Session) -> None:
@@ -67,5 +67,5 @@ class AiHandler:
                 self._payload.chat_id,
                 self._ai_response.answer,
                 False,
-                self._ai_response.reponse_date,
+                self._ai_response.response_date,
             )

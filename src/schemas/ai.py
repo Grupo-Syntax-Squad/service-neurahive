@@ -4,4 +4,4 @@ from pydantic import BaseModel
 
 class AiResponse(BaseModel):
     answer: str
-    reponse_date: datetime
+    response_date: datetime
