@@ -44,9 +44,9 @@ def delete_chat(
     return RouterDeleteChat(session, chat_id).execute()
 
 
-@router.get("/")
+@router.get("/history")
 def get_chat_history(
-    params: GetChatHistoryRequest, session: Session = Depends(get_db)
+    params: GetChatHistoryRequest = Query(), session: Session = Depends(get_db)
 ) -> BasicResponse[list[GetChatHistoryResponse]]:
     # TODO: Implement profile validation here
     return RouterGetChatHistory(session, params).execute()

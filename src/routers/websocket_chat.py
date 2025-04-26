@@ -21,7 +21,9 @@ async def websocket_endpoint(
             data = await websocket.receive_json()
             payload = ChatPayload(**data, message_date=datetime.now())
             ai_response = AiHandler(session, payload).execute()
-            await manager.send_personal_message(ai_response, websocket)
+            await manager.send_personal_message(
+                ai_response.model_dump_json(), websocket
+            )
     except WebSocketDisconnect:
         # TODO: Remove this broadcast in the future
         manager.disconnect(websocket)
