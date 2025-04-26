@@ -17,7 +17,18 @@ class CreateAgent:
 
     def create_agent(self) -> AgentResponse:
         with self.session as db:
-            agent = Agent(name=self.request.name)
+            behavior = self.request.behavior or (
+                "Responda de forma clara, útil e educada. Varie o estilo mantendo o sentido original. "
+                "Use uma linguagem acessível, mas mantenha profissionalismo."
+            )
+            agent = Agent(
+                name=self.request.name,
+                behavior=behavior,
+                theme=self.request.theme,
+                temperature=self.request.temperature,
+                top_p=self.request.top_p,
+                knowledge_base_id=self.request.knowledge_base_id,
+            )
 
             if self.request.groups:
                 groups = db.query(Group).filter(Group.id.in_(self.request.groups)).all()
@@ -36,6 +47,11 @@ class CreateAgent:
             return AgentResponse(
                 id=agent.id,
                 name=agent.name,
+                theme=agent.theme,
+                behavior=agent.behavior,
+                temperature=agent.temperature,
+                top_p=agent.top_p,
+                knowledge_base_id=agent.knowledge_base_id,
                 groups=[group.id for group in agent.groups],
             )
 
@@ -63,6 +79,11 @@ class GetAgent:
             return AgentResponse(
                 id=agent.id,
                 name=agent.name,
+                theme=agent.theme,
+                behavior=agent.behavior,
+                temperature=agent.temperature,
+                top_p=agent.top_p,
+                knowledge_base_id=agent.knowledge_base_id,
                 groups=[group.id for group in agent.groups],
             )
 
@@ -71,6 +92,11 @@ class GetAgent:
             AgentResponse(
                 id=agent.id,
                 name=agent.name,
+                theme=agent.theme,
+                behavior=agent.behavior,
+                temperature=agent.temperature,
+                top_p=agent.top_p,
+                knowledge_base_id=agent.knowledge_base_id,
                 groups=[group.id for group in agent.groups],
             )
             for agent in agents
@@ -114,6 +140,11 @@ class UpdateAgent:
             return AgentResponse(
                 id=agent.id,
                 name=agent.name,
+                theme=agent.theme,
+                behavior=agent.behavior,
+                temperature=agent.temperature,
+                top_p=agent.top_p,
+                knowledge_base_id=agent.knowledge_base_id,
                 groups=[group.id for group in agent.groups],
             )
 

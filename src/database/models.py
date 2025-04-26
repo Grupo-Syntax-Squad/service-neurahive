@@ -12,6 +12,8 @@ from sqlalchemy import (
     func,
     select,
     text,
+    Float,
+    JSON,
 )
 from sqlalchemy.orm import (
     Mapped,
@@ -76,6 +78,13 @@ class Agent(Base):  # type: ignore[valid-type, misc]
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
+    theme: Mapped[str] = mapped_column(String, nullable=False)
+    behavior: Mapped[str] = mapped_column(String)
+    temperature: Mapped[float] = mapped_column(Float, default=0.5)
+    top_p: Mapped[float] = mapped_column(Float, default=0.5)
+    knowledge_base_id: Mapped[int] = mapped_column(
+        ForeignKey("knowledge_base.id"), unique=True
+    )
 
     users = relationship(
         "User",
@@ -150,3 +159,11 @@ class ChatHistory(Base):  # type: ignore[valid-type, misc]
         )
         session.add(chat_history)
         session.commit()
+
+
+class KnowledgeBase(Base):  # type: ignore[valid-type, misc]
+    __tablename__ = "knowledge_base"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    data: Mapped[str] = mapped_column(JSON, nullable=False)

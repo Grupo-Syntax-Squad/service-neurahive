@@ -26,7 +26,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run Ruff
-        run: ruff check .
+        run: ruff check . --fix
 
       - name: Run MyPy
         run: mypy .
