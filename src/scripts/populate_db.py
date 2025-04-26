@@ -109,7 +109,7 @@ class PopulateDatabase:
                         "Posso instalar programas no meu computador corporativo?",
                     ],
                     "answers": [
-                        "Reinicie o computador. Se o problema persistir, envie um chamado pelo sistema de suporte."
+                        "Reinicie o computador. Se o problema persistir, envie um chamado pelo sistema de suporte.",
                         "Use o nome da rede 'Empresa-WiFi' e a senha fornecida pelo TI no seu primeiro dia.",
                         "Entre em contato com suporte@empresa.com e solicite redefinição de senha.",
                         "Encaminhe o e-mail suspeito para ti@empresa.com e não clique em nenhum link.",

@@ -35,9 +35,7 @@ async def websocket_endpoint(
                     code=status.WS_1003_UNSUPPORTED_DATA,
                 )
             ai_response = AiHandler(session, payload).execute()
-            await manager.send_personal_message(
-                ai_response.model_dump_json(), websocket
-            )
+            await manager.send_personal_message(ai_response.model_dump(), websocket)
     except WebSocketDisconnect:
         manager.disconnect(websocket)
     except WebSocketException as we:

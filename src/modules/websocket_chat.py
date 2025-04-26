@@ -2,6 +2,7 @@ from datetime import datetime
 from fastapi import WebSocketException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from src.ai.ai_service import GeminiComunicationHandler
 from src.database.models import Agent, Chat, ChatHistory, KnowledgeBase
 from src.schemas.ai import AiResponse
 from src.schemas.chat_payload import ChatPayload
@@ -12,6 +13,7 @@ class AiHandler:
         self._session = session
         self._payload = payload
         self._knowledge_base: KnowledgeBase | None = None
+        self._agent: Agent | None = None
         self._ai_response: AiResponse | None = None
 
     def execute(self) -> AiResponse:
@@ -21,7 +23,7 @@ class AiHandler:
                 self._format_user_message()
                 self._add_user_message_to_history(session)
                 self._load_knowledge_base(session)
-                self._send_knowledge_base_to_ai()
+                self._get_agent(session)
                 self._send_message_to_ai()
                 if not self._ai_response:
                     raise WebSocketException(
@@ -70,15 +72,33 @@ class AiHandler:
                 code=status.WS_1013_TRY_AGAIN_LATER,
             )
 
-    def _send_knowledge_base_to_ai(self) -> None:
-        # TODO: Implement this method
-        pass
+    def _get_agent(self, session: Session) -> None:
+        query = (
+            select(Agent)
+            .join(Chat, Chat.id == self._payload.chat_id)
+            .where(Agent.id == Chat.agent_id)
+        )
+        result = session.execute(query)
+        self._agent = result.scalars().first()
+        if not self._agent:
+            raise WebSocketException(
+                reason="Não foi possível encontrar o agente!",
+                code=status.WS_1013_TRY_AGAIN_LATER,
+            )
 
     def _send_message_to_ai(self) -> None:
-        # TODO: Implement this method
-        self._ai_response = AiResponse(
-            answer="Not implemented yet!", response_date=datetime.now()
-        )
+        if self._agent and self._knowledge_base:
+            questions = list(self._knowledge_base.data["questions"])  # type: ignore[index]
+            answers = list(self._knowledge_base.data["answers"])  # type: ignore[index]
+            ai_answer, response_date = GeminiComunicationHandler(
+                self._agent,
+                self._payload.message,
+                questions,
+                answers,
+            ).execute()
+            self._ai_response = AiResponse(
+                answer=ai_answer, response_date=response_date
+            )
 
     def _add_ai_response_to_history(self, session: Session) -> None:
         if self._ai_response:
@@ -87,5 +107,5 @@ class AiHandler:
                 self._payload.chat_id,
                 self._ai_response.answer,
                 False,
-                self._ai_response.response_date,
+                datetime.fromtimestamp(self._ai_response.response_date),
             )

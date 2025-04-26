@@ -2,7 +2,12 @@ const socket = new WebSocket("ws://localhost:8000/ws/chat")
 
 socket.onopen = () => {
     console.log("Conectado!")
-    socket.send("{}")
+    socket.send(
+        String({
+            chat_id: 1,
+            message: "Oi",
+        })
+    )
 }
 
 socket.onmessage = (event) => {
