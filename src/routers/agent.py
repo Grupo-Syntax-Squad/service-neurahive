@@ -21,6 +21,7 @@ def get_agents(
     PermissionValidator(current_user, [Role.ADMIN, Role.CURATOR]).execute()
     return GetAgent(session, agent_id).execute()
 
+
 @router.get("/{agent_id}")
 def get_agent(
     agent_id: int | None = None,
