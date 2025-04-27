@@ -22,6 +22,16 @@ def get_agents(
     return GetAgent(session, agent_id).execute()
 
 
+@router.get("/{agent_id}")
+def get_agent(
+    agent_id: int | None = None,
+    current_user: CurrentUser = Depends(Auth.get_current_user),
+    session: Session = Depends(get_db),
+) -> GetAgentBasicResponse[list[AgentResponse] | AgentResponse]:
+    PermissionValidator(current_user, [Role.ADMIN, Role.CURATOR]).execute()
+    return GetAgent(session, agent_id).execute()
+
+
 @router.post("/")
 def post_agent(
     request: PostAgent,
