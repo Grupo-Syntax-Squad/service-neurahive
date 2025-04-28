@@ -68,7 +68,7 @@ class GeminiComunicationHandler:
             "role": "system",
             "content": (
                 f"Você é um assistente que responde apenas sobre o tema {self._agent.theme}, em pt-br, com base nas perguntas e respostas abaixo."
-                f"Se a pergunta não estiver presente ou relacionada ao conteúdo fornecido, diga que só pode responder perguntas sobre o tema {self._agent.theme}, "
+                f"Se a pergunta não estiver presente ou relacionada ao conteúdo fornecido, diga que só pode responder perguntas sobre o tema {self._agent.theme}, mas se for algo relacionado ao tema pode responder com base no seu conhecimento sobre o tema."
                 "diga qual o tema e não fale sobre nada relacionado à pergunta do usuário e nesse caso pode ser uma resposta mais curta."
                 f"{self._agent.behavior} \n\n"
                 f"{self._faq_context}"

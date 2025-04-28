@@ -17,6 +17,7 @@ class GetChatsResponse(BaseModel):
     id: int
     user_id: int
     agent_id: int
+    agent_name: str | None = None
     enabled: bool
 
 
