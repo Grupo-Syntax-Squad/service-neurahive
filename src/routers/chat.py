@@ -23,7 +23,7 @@ router = APIRouter(prefix="/chat", tags=["chat"])
 @router.post("/")
 def create_chat(
     params: PostChat, session: Session = Depends(get_db)
-) -> BasicResponse[None]:
+) -> BasicResponse[GetChatsResponse]:
     # TODO: Implement profile validation here
     return RouterCreateChat(session, params).execute()
 

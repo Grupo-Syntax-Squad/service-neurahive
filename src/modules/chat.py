@@ -18,41 +18,58 @@ class RouterCreateChat:
         self._params = params
         self._new_chat: Chat | None
 
-    def execute(self) -> BasicResponse[None]:
+    def execute(self) -> BasicResponse[GetChatsResponse]:
         try:
-            with self._session as session:
-                self._verify_user_exists(session)
-                self._verify_agent_exists(session)
-                self._create_chat(session)
-                session.commit()
-            return BasicResponse(message="Chat criado com sucesso!")
+            self._verify_user_exists()
+            self._verify_agent_exists()
+            self._create_chat()
+            self._session.commit()
+            if self._new_chat is None:
+                raise HTTPException(
+                    detail="Erro ao criar o chat.",
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
+            if self._agent is None:
+                raise HTTPException(
+                    detail="Erro ao buscar o agente.",
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
+            return BasicResponse(
+                data=GetChatsResponse(id=self._new_chat.id,
+                                      enabled=self._new_chat.enabled,
+                                      agent_id=self._new_chat.agent_id,
+                                      agent_name=self._agent.name, 
+                                      user_id=self._new_chat.user_id),)
         except Exception as e:
             raise HTTPException(
                 detail=f"Erro ao criar o chat: {e}.",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-    def _verify_user_exists(self, session: Session) -> None:
+    def _verify_user_exists(self) -> None:
         query = select(User).where(User.id == self._params.user_id)
-        result = session.execute(query).unique()
+        result = self._session.execute(query).unique()
         if result.scalars().first() is None:
             raise HTTPException(
                 detail=f"Usuário com o id {self._params.user_id} não existe!",
                 status_code=status.HTTP_404_NOT_FOUND,
             )
 
-    def _verify_agent_exists(self, session: Session) -> None:
+    def _verify_agent_exists(self) -> None:
         query = select(Agent).where(Agent.id == self._params.agent_id)
-        result = session.execute(query).unique()
-        if result.scalars().first() is None:
+        result = self._session.execute(query).unique()
+        self._agent = result.scalars().first()
+        if self._agent is None:
             raise HTTPException(
                 detail=f"Agente com o id {self._params.agent_id} não existe!",
                 status_code=status.HTTP_404_NOT_FOUND,
             )
 
-    def _create_chat(self, session: Session) -> None:
+    def _create_chat(self) -> None:
         self._initialize_new_chat()
-        session.add(self._new_chat)
+        self._session.add(self._new_chat)
+        self._session.flush()
+        self._session.refresh(self._new_chat)
 
     def _initialize_new_chat(self) -> None:
         self._new_chat = Chat(
@@ -81,8 +98,6 @@ class RouterGetChats:
         self._conditions = []
         if self._params.user_id is not None:
             self._conditions.append("c.user_id = :user_id")
-        if self._params.agent_id is not None:
-            self._conditions.append("c.agent_id = :agent_id")
         if self._params.enabled is not None:
             self._conditions.append("c.enabled = :enabled")
 
@@ -90,14 +105,12 @@ class RouterGetChats:
         self._query_params = {}
         if self._params.user_id is not None:
             self._query_params["user_id"] = self._params.user_id
-        if self._params.agent_id is not None:
-            self._query_params["agent_id"] = self._params.agent_id
         if self._params.enabled is not None:
             self._query_params["enabled"] = self._params.enabled
 
     def _get_chats(self) -> None:
         with self._session as session:
-            query = "SELECT * FROM chat c WHERE 1=1"
+            query = "SELECT c.id, c.user_id, c.agent_id, c.enabled, a.name as agent_name FROM chat c JOIN agent a ON c.agent_id = a.id WHERE 1=1"
             if self._conditions:
                 query += " AND " + " AND ".join(self._conditions)
 
