@@ -29,11 +29,16 @@ class RouterCreateChat:
                     detail="Erro ao criar o chat.",
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
+            if self._agent is None:
+                raise HTTPException(
+                    detail="Erro ao buscar o agente.",
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
             return BasicResponse(
                 data=GetChatsResponse(id=self._new_chat.id,
                                       enabled=self._new_chat.enabled,
                                       agent_id=self._new_chat.agent_id,
-                                      agent_name=self._agent.name,
+                                      agent_name=self._agent.name, 
                                       user_id=self._new_chat.user_id),)
         except Exception as e:
             raise HTTPException(
