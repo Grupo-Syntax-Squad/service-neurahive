@@ -1,5 +1,7 @@
 # service-neurahive 🍯
 
+![Deploy Status](https://github.com/Grupo-Syntax-Squad/service-neurahive/actions/workflows/deploy_status.yml/badge.svg?branch=dev)
+
 [All commands](#command-blocks)
 
 ## Setup database
