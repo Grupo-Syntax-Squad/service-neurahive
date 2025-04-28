@@ -1,3 +1,4 @@
+from __future__ import annotations
 from datetime import datetime
 from sqlalchemy import (
     ARRAY,
@@ -9,9 +10,18 @@ from sqlalchemy import (
     String,
     Table,
     func,
+    select,
     text,
+    Float,
+    JSON,
 )
-from sqlalchemy.orm import Mapped, mapped_column, declarative_base, relationship
+from sqlalchemy.orm import (
+    Mapped,
+    mapped_column,
+    declarative_base,
+    relationship,
+    Session,
+)
 
 Base = declarative_base()
 
@@ -67,7 +77,14 @@ class Agent(Base):  # type: ignore[valid-type, misc]
     __tablename__ = "agent"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column(String, nullable=False)
+    name: Mapped[str] = mapped_column(String)
+    theme: Mapped[str] = mapped_column(String)
+    behavior: Mapped[str] = mapped_column(String)
+    temperature: Mapped[float] = mapped_column(Float, default=0.5)
+    top_p: Mapped[float] = mapped_column(Float, default=0.5)
+    knowledge_base_id: Mapped[int] = mapped_column(
+        ForeignKey("knowledge_base.id"), unique=True
+    )
 
     users = relationship(
         "User",
@@ -100,3 +117,53 @@ class Group(Base):  # type: ignore[valid-type, misc]
         cascade="all, delete",
         lazy="joined",
     )
+
+
+class Chat(Base):  # type: ignore[valid-type, misc]
+    __tablename__ = "chat"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
+    agent_id: Mapped[int] = mapped_column(ForeignKey("agent.id"))
+    enabled: Mapped[bool] = mapped_column(Boolean, server_default=text("TRUE"))
+
+    @staticmethod
+    def get_chat_by_id(session: Session, chat_id: int) -> Chat | None:  # noqa: F821
+        query = select(Chat).where(Chat.id == chat_id)
+        result = session.execute(query)
+        return result.scalars().first()
+
+
+class ChatHistory(Base):  # type: ignore[valid-type, misc]
+    __tablename__ = "chat_history"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    chat_id: Mapped[int] = mapped_column(ForeignKey("chat.id"))
+    message: Mapped[str] = mapped_column(String)
+    is_user_message: Mapped[bool] = mapped_column(Boolean)
+    message_date: Mapped[datetime] = mapped_column(DateTime)
+
+    @staticmethod
+    def add_chat_history(
+        session: Session,
+        chat_id: int,
+        message: str,
+        is_user_message: bool,
+        message_date: datetime,
+    ) -> None:
+        chat_history = ChatHistory(
+            chat_id=chat_id,
+            message=message,
+            is_user_message=is_user_message,
+            message_date=message_date,
+        )
+        session.add(chat_history)
+        session.commit()
+
+
+class KnowledgeBase(Base):  # type: ignore[valid-type, misc]
+    __tablename__ = "knowledge_base"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    data: Mapped[str] = mapped_column(JSON, nullable=False)

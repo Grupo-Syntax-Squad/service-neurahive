@@ -13,11 +13,7 @@ class CreateGroup:
 
     def execute(self) -> BasicResponse[GroupResponse]:
         group = self.create_group()
-        return BasicResponse(
-            data=group,
-            message="Grupo criado com sucesso.",
-            status_code=status.HTTP_201_CREATED,
-        )
+        return BasicResponse(data=group, message="Grupo criado com sucesso.")
 
     def create_group(self) -> GroupResponse:
         with self.session as db:
@@ -36,9 +32,9 @@ class ReadGroupById:
     def execute(self) -> BasicResponse[GroupResponse]:
         group = self.read_group()
         if group:
-            return BasicResponse(data=group, status_code=status.HTTP_200_OK)
-        return BasicResponse(
-            message="Grupo não encontrado", status_code=status.HTTP_404_NOT_FOUND
+            return BasicResponse(data=group)
+        raise HTTPException(
+            detail="Grupo não encontrado", status_code=status.HTTP_404_NOT_FOUND
         )
 
     def read_group(self) -> GroupResponse | None:
@@ -55,9 +51,7 @@ class ListGroups:
 
     def execute(self) -> BasicResponse[list[GroupResponse]]:
         groups = self.list_groups()
-        return BasicResponse(
-            data=[group for group in groups], status_code=status.HTTP_200_OK
-        )
+        return BasicResponse(data=[group for group in groups])
 
     def list_groups(self) -> list[GroupResponse]:
         with self.session as db:
@@ -73,11 +67,7 @@ class DeleteGroup:
 
     def execute(self) -> BasicResponse[GroupResponse]:
         group = self.delete_group()
-        return BasicResponse(
-            data=group,
-            message="Grupo desabilitado com sucesso.",
-            status_code=status.HTTP_200_OK,
-        )
+        return BasicResponse(data=group, message="Grupo desabilitado com sucesso.")
 
     def delete_group(self) -> GroupResponse:
         with self.session as db:
@@ -98,11 +88,7 @@ class UpdateGroup:
 
     def execute(self) -> BasicResponse[GroupResponse]:
         group = self.update_group()
-        return BasicResponse(
-            data=group,
-            message="Grupo atualizado com sucesso.",
-            status_code=status.HTTP_200_OK,
-        )
+        return BasicResponse(data=group, message="Grupo atualizado com sucesso.")
 
     def update_group(self) -> GroupResponse:
         with self.session as db:
@@ -126,11 +112,7 @@ class AddAgentsToGroup:
 
     def execute(self) -> BasicResponse[GroupResponse]:
         group = self.add_agents_to_group()
-        return BasicResponse(
-            data=group,
-            message="Agentes adicionados com sucesso.",
-            status_code=status.HTTP_200_OK,
-        )
+        return BasicResponse(data=group, message="Agentes adicionados com sucesso.")
 
     def add_agents_to_group(self) -> GroupResponse:
         with self.session as db:
@@ -161,11 +143,7 @@ class RemoveAgentsFromGroup:
 
     def execute(self) -> BasicResponse[GroupResponse]:
         group = self.remove_agents_from_group()
-        return BasicResponse(
-            data=group,
-            message="Agentes removidos com sucesso.",
-            status_code=status.HTTP_200_OK,
-        )
+        return BasicResponse(data=group, message="Agentes removidos com sucesso.")
 
     def remove_agents_from_group(self) -> GroupResponse:
         with self.session as db:

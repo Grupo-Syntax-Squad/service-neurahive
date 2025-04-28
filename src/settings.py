@@ -27,8 +27,19 @@ class Settings:
         )
         self.SECRET_KEY = os.getenv("SECRET_KEY", "default_secret_key")
         self.ALGORITHM = os.getenv("ALGORITHM", "HS256")
-        self.ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("TOKEN_EXPIRATION_TIME", 30))
+        self.ACCESS_TOKEN_EXPIRE_MINUTES = int(
+            os.getenv("TOKEN_EXPIRATION_TIME", 300000)
+        )
         self.NO_AUTH = os.getenv("NO_AUTH", False)
+        self.AI_API_KEY = os.getenv("AI_API_KEY")
+        self.AI_API_URL = os.getenv("AI_API_URL")
+        self.AI_MODEL = os.getenv("AI_MODEL")
 
-        if not self.DATABASE_URL or not self.SECRET_KEY:
+        if (
+            not self.DATABASE_URL
+            or not self.SECRET_KEY
+            or not self.AI_API_KEY
+            or not self.AI_API_URL
+            or not self.AI_MODEL
+        ):
             raise ValueError("Required environment variables are missing!")

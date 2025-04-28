@@ -17,7 +17,7 @@ from src.schemas.basic_response import BasicResponse
 from src.schemas.group import GroupResponse, PostGroup, UpdateGroupSchema
 from sqlalchemy.orm import Session
 
-router = APIRouter(prefix="/groups")
+router = APIRouter(prefix="/groups", tags=["Groups"])
 
 
 @router.get("/", response_model=BasicResponse[List[GroupResponse]])
@@ -26,7 +26,7 @@ def get_groups(
     current_user: CurrentUser = Depends(Auth.get_current_user),
 ) -> BasicResponse[list[GroupResponse]]:
     PermissionValidator(current_user, [Role.ADMIN, Role.CURATOR]).execute()
-    return ListGroups(session).execute()()  # type: ignore[return-value]
+    return ListGroups(session).execute()
 
 
 @router.get("/{id}", response_model=BasicResponse[GroupResponse])
@@ -36,7 +36,7 @@ def get_group_by_id(
     current_user: CurrentUser = Depends(Auth.get_current_user),
 ) -> BasicResponse[GroupResponse]:
     PermissionValidator(current_user, [Role.ADMIN, Role.CURATOR]).execute()
-    return ReadGroupById(session, id).execute()()  # type: ignore[return-value]
+    return ReadGroupById(session, id).execute()
 
 
 @router.post("/", response_model=BasicResponse[GroupResponse])
@@ -46,7 +46,7 @@ def post_group(
     session: Session = Depends(get_db),
 ) -> BasicResponse[GroupResponse]:
     PermissionValidator(current_user, [Role.ADMIN, Role.CURATOR]).execute()
-    return CreateGroup(session, request).execute()()  # type: ignore[return-value]
+    return CreateGroup(session, request).execute()
 
 
 @router.delete("/{id}")
@@ -56,7 +56,7 @@ def delete_group(
     session: Session = Depends(get_db),
 ) -> BasicResponse[GroupResponse]:
     PermissionValidator(current_user, [Role.ADMIN, Role.CURATOR]).execute()
-    return DeleteGroup(session, id).execute()()  # type: ignore[return-value]
+    return DeleteGroup(session, id).execute()
 
 
 @router.put("/{id}", response_model=BasicResponse[GroupResponse])
@@ -67,7 +67,7 @@ def update_group(
     session: Session = Depends(get_db),
 ) -> BasicResponse[GroupResponse]:
     PermissionValidator(current_user, [Role.ADMIN, Role.CURATOR]).execute()
-    return UpdateGroup(session, request, id).execute()()  # type: ignore[return-value]
+    return UpdateGroup(session, request, id).execute()
 
 
 @router.patch("/{id}/addAgents", response_model=BasicResponse[GroupResponse])
@@ -78,7 +78,7 @@ def add_agents_to_group(
     session: Session = Depends(get_db),
 ) -> BasicResponse[GroupResponse]:
     PermissionValidator(current_user, [Role.ADMIN, Role.CURATOR]).execute()
-    return AddAgentsToGroup(session, request, id).execute()()  # type: ignore[return-value]
+    return AddAgentsToGroup(session, request, id).execute()
 
 
 @router.patch("/{id}/removeAgents", response_model=BasicResponse[GroupResponse])
@@ -89,4 +89,4 @@ def remove_agents_from_group(
     session: Session = Depends(get_db),
 ) -> BasicResponse[GroupResponse]:
     PermissionValidator(current_user, [Role.ADMIN, Role.CURATOR]).execute()
-    return RemoveAgentsFromGroup(session, request, id).execute()()  # type: ignore[return-value]
+    return RemoveAgentsFromGroup(session, request, id).execute()

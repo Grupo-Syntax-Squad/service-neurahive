@@ -9,11 +9,21 @@ from src.auth.auth_utils import Auth
 from src.schemas.agent import AgentResponse, PostAgent
 from src.modules.agent import CreateAgent, DeleteAgent, GetAgent, UpdateAgent
 
-router = APIRouter(prefix="/agents")
+router = APIRouter(prefix="/agents", tags=["Agents"])
 
 
 @router.get("/")
 def get_agents(
+    agent_id: int | None = None,
+    current_user: CurrentUser = Depends(Auth.get_current_user),
+    session: Session = Depends(get_db),
+) -> GetAgentBasicResponse[list[AgentResponse] | AgentResponse]:
+    PermissionValidator(current_user, [Role.ADMIN, Role.CURATOR]).execute()
+    return GetAgent(session, agent_id).execute()
+
+
+@router.get("/{agent_id}")
+def get_agent(
     agent_id: int | None = None,
     current_user: CurrentUser = Depends(Auth.get_current_user),
     session: Session = Depends(get_db),
