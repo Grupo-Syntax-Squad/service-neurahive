@@ -1,0 +1,52 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+      RENDER_API: ${{ secrets.RENDER_API }}
+      
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Fazer deploy no Render
+        run: |
+          curl -X POST "$RENDER_DEPLOY_HOOK"
+
+      - name: Aguardar conclusão do deploy
+        run: |
+          echo "Aguardando 60 segundos para Render começar o deploy..."
+          sleep 60
+
+          STATUS=""
+          MAX_RETRIES=20
+          RETRY_INTERVAL=15
+
+          for i in $(seq 1 $MAX_RETRIES); do
+            echo "Tentativa $i de $MAX_RETRIES..."
+            STATUS=$(curl -s -H "Authorization: Bearer $RENDER_API" \
+              https://api.render.com/v1/services/srv-d03nunpr0fns73cl2890/deploys \
+              | jq -r '.[] | select(.status != null) | .status' | head -n 1)
+
+            echo "Status atual do deploy: $STATUS"
+
+            if [[ "$STATUS" == "live" ]]; then
+              echo "✅ Deploy finalizado com sucesso!"
+              exit 0
+            elif [[ "$STATUS" == "failed" ]]; then
+              echo "❌ Deploy falhou!"
+              exit 1
+            fi
+
+            sleep $RETRY_INTERVAL
+          done
+
+          echo "⚠️ Deploy não finalizou no tempo esperado."
+          exit 1
