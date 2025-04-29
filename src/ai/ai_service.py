@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, timezone
 import requests
 from collections import deque
 from typing import Any, Deque, Literal, TypedDict
@@ -90,7 +91,7 @@ class GeminiComunicationHandler:
 
     def _make_request_to_gemini(self) -> None:
         self._response = requests.post(
-            settings.AI_API_URL,
+            settings.AI_API_URL,  # type: ignore[arg-type]
             json=self._data,
             headers=self._headers,
         )
