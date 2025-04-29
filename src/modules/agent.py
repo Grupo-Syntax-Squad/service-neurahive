@@ -1,3 +1,4 @@
+from sqlalchemy import select
 from src.schemas.basic_response import BasicResponse, GetAgentBasicResponse
 from src.database.models import Agent, Group
 from src.schemas.agent import AgentResponse, PostAgent
@@ -12,8 +13,29 @@ class CreateAgent:
         self.request = request
 
     def execute(self) -> BasicResponse[AgentResponse]:
-        agent = self.create_agent()
-        return BasicResponse(data=agent, message="Agent created successfully.")
+        try:
+            self._verify_if_knowledge_base_already_have_a_agent()
+            agent = self.create_agent()
+            self.session.commit()
+            return BasicResponse(data=agent, message="Agente criado com sucesso!")
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(
+                detail=f"Erro ao criar agente: {e}.",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    def _verify_if_knowledge_base_already_have_a_agent(self) -> None:
+        query = select(Agent).where(
+            Agent.knowledge_base_id == self.request.knowledge_base_id
+        )
+        result = self.session.execute(query)
+        if result.scalars().first() is not None:
+            raise HTTPException(
+                detail="Base de conhecimento já vinculada a outro agente!",
+                status_code=status.HTTP_409_CONFLICT,
+            )
 
     def create_agent(self) -> AgentResponse:
         with self.session as db:
@@ -41,7 +63,7 @@ class CreateAgent:
                 agent.groups = groups
 
             db.add(agent)
-            db.commit()
+            db.flush()
             db.refresh(agent)
 
             return AgentResponse(
