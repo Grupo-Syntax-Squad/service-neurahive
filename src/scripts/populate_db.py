@@ -128,7 +128,7 @@ class PopulateDatabase:
         if self._knowledge_bases:
             self._agents = [
                 Agent(
-                    name="Agent 1",
+                    name="Agente do setor de administração",
                     users=[],
                     groups=[],
                     theme="Administração",
@@ -137,7 +137,7 @@ class PopulateDatabase:
                     knowledge_base_id=self._knowledge_bases[0].id,
                 ),
                 Agent(
-                    name="Agent 2",
+                    name="Agente do setor de vendas",
                     users=[],
                     groups=[],
                     theme="Setor de vendas",
@@ -146,7 +146,7 @@ class PopulateDatabase:
                     knowledge_base_id=self._knowledge_bases[1].id,
                 ),
                 Agent(
-                    name="Agent 3",
+                    name="Agente do setor de financeiro",
                     users=[],
                     groups=[],
                     theme="Financeiro",
@@ -155,7 +155,7 @@ class PopulateDatabase:
                     knowledge_base_id=self._knowledge_bases[2].id,
                 ),
                 Agent(
-                    name="Agent 4",
+                    name="Agente do setor de TI",
                     users=[],
                     groups=[],
                     theme="TI",
