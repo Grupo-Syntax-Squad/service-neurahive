@@ -1,13 +1,14 @@
 from src.constants import Role
 from sqlalchemy.orm import Session
 from src.database.get_db import get_db
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, UploadFile, File, Form
 from src.auth.auth_utils import PermissionValidator
 from src.schemas.auth import CurrentUser
 from src.schemas.basic_response import BasicResponse, GetAgentBasicResponse
 from src.auth.auth_utils import Auth
 from src.schemas.agent import AgentResponse, PostAgent
 from src.modules.agent import CreateAgent, DeleteAgent, GetAgent, UpdateAgent
+from typing import Optional, List
 
 router = APIRouter(prefix="/agents", tags=["Agents"])
 
@@ -33,13 +34,32 @@ def get_agent(
 
 
 @router.post("/")
-def post_agent(
-    request: PostAgent,
+async def post_agent(
+    name: str = Form(...),
+    theme: str = Form(...),
+    behavior: Optional[str] = Form(None),
+    temperature: float = Form(0.5),
+    top_p: float = Form(0.5),
+    groups: Optional[List[int]] = Form(default_factory=list),
+    knowledge_base_id: Optional[int] = Form(None),
+    file: Optional[UploadFile] = File(None),
+    knowledge_base_name: Optional[str] = Form(None),
     current_user: CurrentUser = Depends(Auth.get_current_user),
     session: Session = Depends(get_db),
 ) -> BasicResponse[AgentResponse]:
     PermissionValidator(current_user, [Role.ADMIN, Role.CURATOR]).execute()
-    return CreateAgent(session, request).execute()
+    return await CreateAgent(
+        session,
+        name,
+        theme,
+        behavior,
+        temperature,
+        top_p,
+        groups,
+        knowledge_base_id,
+        file,
+        knowledge_base_name
+        ).execute()
 
 
 @router.put("/{agent_id}")

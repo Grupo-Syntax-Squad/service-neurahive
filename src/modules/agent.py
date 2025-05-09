@@ -1,21 +1,43 @@
-from sqlalchemy import select
+import csv
+import json
+from io import StringIO
 from src.schemas.basic_response import BasicResponse, GetAgentBasicResponse
-from src.database.models import Agent, Group
+from src.database.models import Agent, Group, KnowledgeBase
 from src.schemas.agent import AgentResponse, PostAgent
 from sqlalchemy.orm import Session
-from fastapi import HTTPException, status
-from typing import Union
+from fastapi import HTTPException, status, UploadFile
+from typing import Union, Optional, List
 
 
 class CreateAgent:
-    def __init__(self, session: Session, request: PostAgent):
+    def __init__(
+            self,
+            session: Session,
+            name: str,
+            theme: str,
+            behavior: Optional[str],
+            temperature: float,
+            top_p: float,
+            groups: Optional[List[int]],
+            knowledge_base_id: Optional[int],
+            file: Optional[UploadFile],
+            knowledge_base_name: Optional[str],
+        ):
         self.session = session
-        self.request = request
+        self.file = file
+        self.knowledge_base_id = knowledge_base_id
+        self.name = name
+        self.theme = theme
+        self.behavior = behavior
+        self.temperature = temperature
+        self.top_p = top_p
+        self.groups = groups
+        self.knowledge_base_name = knowledge_base_name
 
-    def execute(self) -> BasicResponse[AgentResponse]:
+    async def execute(self) -> BasicResponse[AgentResponse]:
         try:
             self._verify_if_knowledge_base_already_have_a_agent()
-            agent = self.create_agent()
+            agent = await self.create_agent()
             self.session.commit()
             return BasicResponse(data=agent, message="Agente criado com sucesso!")
         except HTTPException:
@@ -27,55 +49,109 @@ class CreateAgent:
             )
 
     def _verify_if_knowledge_base_already_have_a_agent(self) -> None:
-        query = select(Agent).where(
-            Agent.knowledge_base_id == self.request.knowledge_base_id
-        )
-        result = self.session.execute(query)
-        if result.scalars().first() is not None:
+        if self.knowledge_base_id:
+            query = self.session.query(Agent).filter(
+                Agent.knowledge_base_id == self.knowledge_base_id
+            )
+            if query.first():
+                raise HTTPException(
+                    detail="Base de conhecimento já vinculada a outro agente!",
+                    status_code=status.HTTP_409_CONFLICT,
+                )
+
+    async def _process_csv_file(self) -> dict[str, list[str]]:
+        if self.file and self.file.filename:
+            if not self.file.filename.endswith(".csv"):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Apenas arquivos .csv são permitidos.",
+                )
+
+        try:
+            if self.file:
+                contents = await self.file.read()
+                try:
+                    decoded = contents.decode("utf-8")
+                except UnicodeDecodeError:
+                    decoded = contents.decode("latin-1")
+
+            csv_reader = csv.DictReader(StringIO(decoded))
+            questions, answers = [], []
+
+            for row in csv_reader:
+                question = row.get("pergunta") or row.get("Pergunta") or row.get("perguntas") or row.get("Perguntas")
+                answer = row.get("resposta") or row.get("Resposta") or row.get("respostas") or row.get("Respostas")
+
+                if question and answer:
+                    questions.append(question.strip())
+                    answers.append(answer.strip())
+                    if len(questions) != len(answers):
+                        raise ValueError(
+                            "Arquivo com quantidade de perguntas diferente da quantidade de respostas"
+                        )
+                else:
+                    raise ValueError("O arquivo CSV está vazio ou mal formatado. Utilizar arquivo com colunas 'Pergunta' e 'Resposta'")
+
+            return {"questions": questions, "answers": answers}
+        except Exception as e:
             raise HTTPException(
-                detail="Base de conhecimento já vinculada a outro agente!",
-                status_code=status.HTTP_409_CONFLICT,
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Erro ao processar o arquivo CSV: {e}",
             )
+        
+    async def create_agent(self) -> AgentResponse:
+        behavior = self.behavior or (
+            "Responda de forma clara, útil e educada. Varie o estilo mantendo o sentido original. "
+            "Use uma linguagem acessível, mas mantenha profissionalismo."
+        )
 
-    def create_agent(self) -> AgentResponse:
-        with self.session as db:
-            behavior = self.request.behavior or (
-                "Responda de forma clara, útil e educada. Varie o estilo mantendo o sentido original. "
-                "Use uma linguagem acessível, mas mantenha profissionalismo."
+        if self.file and self.knowledge_base_name:
+            knowledge_base_data = await self._process_csv_file()
+            new_knowledge_base = KnowledgeBase(
+                name=self.knowledge_base_name,
+                data=json.dumps(knowledge_base_data),
             )
-            agent = Agent(
-                name=self.request.name,
-                behavior=behavior,
-                theme=self.request.theme,
-                temperature=self.request.temperature,
-                top_p=self.request.top_p,
-                knowledge_base_id=self.request.knowledge_base_id,
-            )
+            self.session.add(new_knowledge_base)
+            self.session.flush()
+            self.knowledge_base_id = new_knowledge_base.id
+        elif self.file and not self.knowledge_base_name:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="A base precisa ter um nome para ser carregada"
+                )
 
-            if self.request.groups:
-                groups = db.query(Group).filter(Group.id.in_(self.request.groups)).all()
+        agent = Agent(
+            name=self.name,
+            behavior=behavior,
+            theme=self.theme,
+            temperature=self.temperature,
+            top_p=self.top_p,
+            knowledge_base_id=self.knowledge_base_id,
+        )
 
-                if len(groups) != len(self.request.groups):
-                    raise HTTPException(
-                        status_code=status.HTTP_404_NOT_FOUND,
-                        detail="One or more groups not found",
-                    )
-                agent.groups = groups
+        if self.groups:
+            groups = self.session.query(Group).filter(Group.id.in_(self.groups)).all()
+            if len(groups) != len(self.groups):
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Um ou mais grupos não foram encontrados.",
+                )
+            agent.groups = groups
 
-            db.add(agent)
-            db.flush()
-            db.refresh(agent)
+        self.session.add(agent)
+        self.session.flush()
+        self.session.refresh(agent)
 
-            return AgentResponse(
-                id=agent.id,
-                name=agent.name,
-                theme=agent.theme,
-                behavior=agent.behavior,
-                temperature=agent.temperature,
-                top_p=agent.top_p,
-                knowledge_base_id=agent.knowledge_base_id,
-                groups=[group.id for group in agent.groups],
-            )
+        return AgentResponse(
+            id=agent.id,
+            name=agent.name,
+            theme=agent.theme,
+            behavior=agent.behavior,
+            temperature=agent.temperature,
+            top_p=agent.top_p,
+            knowledge_base_id=agent.knowledge_base_id,
+            groups=[group.id for group in agent.groups],
+        )
 
 
 class GetAgent:
