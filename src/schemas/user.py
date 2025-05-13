@@ -9,7 +9,7 @@ class PostUser(BaseModel):
     email: str
     password: str
     role: list[int]
-    selectedAgents: list[int]
+    selected_agents: list[int]
 
     class Config:
         orm_mode = True
@@ -39,6 +39,7 @@ class PutUserRequest(BaseModel):
     password: str
     name: str
     role: list[int]
+    selected_agents: list[int]
 
     class Config:
         orm_mode = True
