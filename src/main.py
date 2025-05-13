@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 from src.database.get_db import engine
 from src.database.models import Base
 from src.middlewares.logging import log_requests
@@ -23,6 +24,13 @@ Base.metadata.create_all(bind=engine)
 
 
 app = FastAPI()
+
+
+@app.get("/")
+def index():
+    return RedirectResponse("/docs")
+
+
 app.middleware("http")(log_requests)
 app.include_router(example.router)
 app.include_router(user.router)
