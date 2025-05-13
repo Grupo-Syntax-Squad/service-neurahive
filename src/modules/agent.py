@@ -1,28 +1,31 @@
 import csv
 import json
 from io import StringIO
+
+from sqlalchemy import select
 from src.schemas.basic_response import BasicResponse, GetAgentBasicResponse
-from src.database.models import Agent, Group, KnowledgeBase
-from src.schemas.agent import AgentResponse, PostAgent
+from src.database.models import Agent, Group, KnowledgeBase, User
+from src.schemas.agent import AgentResponse, PostAgent, GetAgentsRequest
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status, UploadFile
-from typing import Union, Optional, List
+from typing import Optional, List
 
 
+# TODO: MOVE THIS CSV FILE VALIDATOR AND PROCESSING TO ANOTHER CLASS
 class CreateAgent:
     def __init__(
-            self,
-            session: Session,
-            name: str,
-            theme: str,
-            behavior: Optional[str],
-            temperature: float,
-            top_p: float,
-            groups: Optional[List[int]],
-            knowledge_base_id: Optional[int],
-            file: Optional[UploadFile],
-            knowledge_base_name: Optional[str],
-        ):
+        self,
+        session: Session,
+        name: str,
+        theme: str,
+        behavior: Optional[str],
+        temperature: float,
+        top_p: float,
+        groups: Optional[List[int]],
+        knowledge_base_id: Optional[int],
+        file: Optional[UploadFile],
+        knowledge_base_name: Optional[str],
+    ):
         self.session = session
         self.file = file
         self.knowledge_base_id = knowledge_base_id
@@ -79,8 +82,18 @@ class CreateAgent:
             questions, answers = [], []
 
             for row in csv_reader:
-                question = row.get("pergunta") or row.get("Pergunta") or row.get("perguntas") or row.get("Perguntas")
-                answer = row.get("resposta") or row.get("Resposta") or row.get("respostas") or row.get("Respostas")
+                question = (
+                    row.get("pergunta")
+                    or row.get("Pergunta")
+                    or row.get("perguntas")
+                    or row.get("Perguntas")
+                )
+                answer = (
+                    row.get("resposta")
+                    or row.get("Resposta")
+                    or row.get("respostas")
+                    or row.get("Respostas")
+                )
 
                 if question and answer:
                     questions.append(question.strip())
@@ -90,7 +103,9 @@ class CreateAgent:
                             "Arquivo com quantidade de perguntas diferente da quantidade de respostas"
                         )
                 else:
-                    raise ValueError("O arquivo CSV está vazio ou mal formatado. Utilizar arquivo com colunas 'Pergunta' e 'Resposta'")
+                    raise ValueError(
+                        "O arquivo CSV está vazio ou mal formatado. Utilizar arquivo com colunas 'Pergunta' e 'Resposta'"
+                    )
 
             return {"questions": questions, "answers": answers}
         except Exception as e:
@@ -98,7 +113,7 @@ class CreateAgent:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Erro ao processar o arquivo CSV: {e}",
             )
-        
+
     async def create_agent(self) -> AgentResponse:
         behavior = self.behavior or (
             "Responda de forma clara, útil e educada. Varie o estilo mantendo o sentido original. "
@@ -117,8 +132,8 @@ class CreateAgent:
         elif self.file and not self.knowledge_base_name:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="A base precisa ter um nome para ser carregada"
-                )
+                detail="A base precisa ter um nome para ser carregada",
+            )
 
         agent = Agent(
             name=self.name,
@@ -154,51 +169,74 @@ class CreateAgent:
         )
 
 
-class GetAgent:
-    def __init__(self, session: Session, agent_id: int | None):
+class GetAgents:
+    def __init__(self, session: Session, params: GetAgentsRequest):
         self._session = session
-        self._agent_id = agent_id
+        self._params = params
+        self._user: User | None = None
+        self._agents_ids: list[int] | None = None
+        self._agents: list[Agent] | None = None
+        self._response: list[AgentResponse] | None = None
 
     def execute(
         self,
-    ) -> GetAgentBasicResponse[Union[AgentResponse, list[AgentResponse]]]:
-        agent_data = self._get_agent()
-        return GetAgentBasicResponse(data=agent_data)
-
-    def _get_agent(self) -> list[AgentResponse] | AgentResponse:
-        if self._agent_id:
-            agent = (
-                self._session.query(Agent).filter(Agent.id == self._agent_id).first()
+    ) -> GetAgentBasicResponse[list[AgentResponse]]:
+        try:
+            if self._params.user_id:
+                self._get_user()
+                self._get_user_agents_ids()
+            self._get_agents()
+            self._make_response()
+            return GetAgentBasicResponse(data=self._response)
+        except HTTPException as e:
+            raise e
+        except Exception as e:
+            print("[ERROR]:", e)
+            raise HTTPException(
+                detail=f"Um erro inesperado aconteceu: {e}",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-            if not agent:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND, detail="Agent not found"
+
+    def _get_user(self) -> None:
+        query = select(User).where(User.id == self._params.user_id, User.enabled)
+        result = self._session.execute(query)
+        self._user = result.unique().scalar_one_or_none()
+        if self._user is None:
+            raise HTTPException(
+                detail="Usuário não encontrado", status_code=status.HTTP_404_NOT_FOUND
+            )
+
+    def _get_user_agents_ids(self) -> None:
+        if self._user:
+            self._agents_ids = [agent.id for agent in self._user.agents]
+
+    def _get_agents(self) -> None:
+        query = select(Agent)
+        if self._user:
+            query = query.where(Agent.id.in_(self._agents_ids))
+        result = self._session.execute(query).unique().scalars().all()
+        self._agents = list(result) if result else None
+
+    def _make_response(self) -> None:
+        if self._agents:
+            self._response = [
+                AgentResponse(
+                    id=agent.id,
+                    name=agent.name,
+                    theme=agent.theme,
+                    behavior=agent.behavior,
+                    temperature=agent.temperature,
+                    top_p=agent.top_p,
+                    knowledge_base_id=agent.knowledge_base_id,
+                    groups=[group.id for group in agent.groups],
                 )
-            return AgentResponse(
-                id=agent.id,
-                name=agent.name,
-                theme=agent.theme,
-                behavior=agent.behavior,
-                temperature=agent.temperature,
-                top_p=agent.top_p,
-                knowledge_base_id=agent.knowledge_base_id,
-                groups=[group.id for group in agent.groups],
-            )
+                for agent in self._agents
+            ]
+        else:
+            self._response = []
 
-        agents = self._session.query(Agent).all()
-        return [
-            AgentResponse(
-                id=agent.id,
-                name=agent.name,
-                theme=agent.theme,
-                behavior=agent.behavior,
-                temperature=agent.temperature,
-                top_p=agent.top_p,
-                knowledge_base_id=agent.knowledge_base_id,
-                groups=[group.id for group in agent.groups],
-            )
-            for agent in agents
-        ]
+
+class GetAgent: ...
 
 
 class UpdateAgent:
