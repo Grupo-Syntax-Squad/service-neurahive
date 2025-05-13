@@ -6,8 +6,13 @@ from src.auth.auth_utils import PermissionValidator
 from src.schemas.auth import CurrentUser
 from src.schemas.basic_response import BasicResponse, GetAgentBasicResponse
 from src.auth.auth_utils import Auth
-from src.schemas.agent import AgentResponse, PostAgent, GetAgentsRequest
-from src.modules.agent import CreateAgent, DeleteAgent, GetAgents, UpdateAgent
+from src.schemas.agent import (
+    AgentResponse,
+    GetAgentRequest,
+    PostAgent,
+    GetAgentsRequest,
+)
+from src.modules.agent import CreateAgent, DeleteAgent, GetAgent, GetAgents, UpdateAgent
 from typing import Optional, List
 
 router = APIRouter(prefix="/agents", tags=["Agents"])
@@ -23,15 +28,15 @@ def get_agents(
     return GetAgents(session, params).execute()
 
 
-# TODO: Implement a new class named GetAgent to get a individual agent
-# @router.get("/{agent_id}")
-# def get_agent(
-#     agent_id: int | None = None,
-#     current_user: CurrentUser = Depends(Auth.get_current_user),
-#     session: Session = Depends(get_db),
-# ) -> GetAgentBasicResponse[list[AgentResponse] | AgentResponse]:
-#     PermissionValidator(current_user, [Role.ADMIN, Role.CURATOR]).execute()
-#     return GetAgent(session, agent_id).execute()
+@router.get("/{agent_id}")
+def get_agent(
+    agent_id: int,
+    current_user: CurrentUser = Depends(Auth.get_current_user),
+    session: Session = Depends(get_db),
+) -> GetAgentBasicResponse[AgentResponse]:
+    PermissionValidator(current_user, [Role.ADMIN, Role.CURATOR]).execute()
+    params = GetAgentRequest(agent_id=agent_id)
+    return GetAgent(session, params).execute()
 
 
 @router.post("/")

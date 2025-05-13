@@ -5,7 +5,12 @@ from io import StringIO
 from sqlalchemy import select
 from src.schemas.basic_response import BasicResponse, GetAgentBasicResponse
 from src.database.models import Agent, Group, KnowledgeBase, User
-from src.schemas.agent import AgentResponse, PostAgent, GetAgentsRequest
+from src.schemas.agent import (
+    AgentResponse,
+    GetAgentRequest,
+    PostAgent,
+    GetAgentsRequest,
+)
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status, UploadFile
 from typing import Optional, List
@@ -212,7 +217,7 @@ class GetAgents:
 
     def _get_agents(self) -> None:
         query = select(Agent)
-        if self._agents_ids:
+        if self._agents_ids is not None:
             query = query.where(Agent.id.in_(self._agents_ids))
         result = self._session.execute(query).unique().scalars().all()
         self._agents = list(result) if result else None
@@ -236,8 +241,46 @@ class GetAgents:
             self._response = []
 
 
-# TODO: Implement this class and call execute method in get individual agent endpoint
-class GetAgent: ...
+class GetAgent:
+    def __init__(self, session: Session, params: GetAgentRequest) -> None:
+        self._session = session
+        self._params = params
+        self._agent: Agent | None = None
+
+    def execute(self) -> GetAgentBasicResponse[AgentResponse]:
+        try:
+            self._get_agent()
+            self._make_response()
+            return GetAgentBasicResponse(data=self._response)
+        except HTTPException as e:
+            raise e
+        except Exception as e:
+            raise HTTPException(
+                detail=f"Ocorreu um erro inesperado: {e}",
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+    def _get_agent(self) -> None:
+        query = select(Agent).where(Agent.id == self._params.agent_id)
+        result = self._session.execute(query)
+        self._agent = result.unique().scalar_one_or_none()
+        if self._agent is None:
+            raise HTTPException(
+                detail="Agente não encontrado", status_code=status.HTTP_404_NOT_FOUND
+            )
+
+    def _make_response(self) -> None:
+        if self._agent:
+            self._response = AgentResponse(
+                id=self._agent.id,
+                name=self._agent.name,
+                theme=self._agent.theme,
+                behavior=self._agent.behavior,
+                temperature=self._agent.temperature,
+                top_p=self._agent.top_p,
+                knowledge_base_id=self._agent.knowledge_base_id,
+                groups=[group.id for group in self._agent.groups],
+            )
 
 
 class UpdateAgent:

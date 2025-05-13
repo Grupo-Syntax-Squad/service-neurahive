@@ -6,6 +6,10 @@ class GetAgentsRequest(BaseModel):
     user_id: int | None = None
 
 
+class GetAgentRequest(BaseModel):
+    agent_id: int
+
+
 class AgentResponse(BaseModel):
     id: int
     name: str
