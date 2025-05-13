@@ -212,7 +212,7 @@ class GetAgents:
 
     def _get_agents(self) -> None:
         query = select(Agent)
-        if self._user:
+        if self._agents_ids:
             query = query.where(Agent.id.in_(self._agents_ids))
         result = self._session.execute(query).unique().scalars().all()
         self._agents = list(result) if result else None
@@ -236,6 +236,7 @@ class GetAgents:
             self._response = []
 
 
+# TODO: Implement this class and call execute method in get individual agent endpoint
 class GetAgent: ...
 
 
