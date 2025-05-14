@@ -190,6 +190,7 @@ class GetAgents:
         except HTTPException as e:
             raise e
         except Exception as e:
+            # TODO: IMPROVE LOGGING SYSTEM
             print("[ERROR]:", e)
             raise HTTPException(
                 detail=f"Um erro inesperado aconteceu: {e}",
