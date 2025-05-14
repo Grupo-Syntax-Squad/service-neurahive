@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-from typing import Dict, Any
 
 
 class PostKnowledgeBaseResponse(BaseModel):
@@ -14,7 +13,7 @@ class PostKnowledgeBaseResponse(BaseModel):
 class GetKnowledgeBaseResponse(BaseModel):
     id: int
     name: str
-    data: Dict[str, Any]
+    data: dict[str, list[str]]
 
     class Config:
         orm_mode = True

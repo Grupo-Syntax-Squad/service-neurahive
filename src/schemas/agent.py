@@ -2,6 +2,14 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 
 
+class GetAgentsRequest(BaseModel):
+    user_id: int | None = None
+
+
+class GetAgentRequest(BaseModel):
+    agent_id: int
+
+
 class AgentResponse(BaseModel):
     id: int
     name: str
