@@ -76,7 +76,7 @@ class ReadKnowledgeBase:
                 return GetKnowledgeBaseResponse(
                     id=knowledge_base.id,
                     name=knowledge_base.name,
-                    data=json.loads(knowledge_base.data),
+                    data=knowledge_base.data,  # type: ignore[arg-type]
                 )
             return None
 

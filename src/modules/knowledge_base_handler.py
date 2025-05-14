@@ -50,7 +50,11 @@ class KnowledgeBaseHandler:
         self._answers = []
 
     def _get_questions_and_answers(self) -> None:
-        if self._csv_reader and self._questions and self._answers:
+        if (
+            self._csv_reader
+            and self._questions is not None
+            and self._answers is not None
+        ):
             for row in self._csv_reader:
                 question = self._get_question(row)
                 answer = self._get_answer(row)
@@ -63,6 +67,8 @@ class KnowledgeBaseHandler:
                 self._questions.append(question)
                 self._answers.append(answer)
 
+    # WARNING: These functions to get question and answer have a problem when columns names are not `pergunta` and `resposta`
+    # FIX: Fix these functions below
     def _get_question(self, row: dict[str, Any]) -> str | None:
         return (
             row.get("pergunta")

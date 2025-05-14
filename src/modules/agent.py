@@ -1,5 +1,5 @@
 from sqlalchemy import select
-from src.modules.csv_handler import KnowledgeBaseHandler
+from src.modules.knowledge_base_handler import KnowledgeBaseHandler
 from src.schemas.basic_response import BasicResponse, GetAgentBasicResponse
 from src.database.models import Agent, Group, KnowledgeBase, User
 from src.schemas.agent import (
@@ -53,8 +53,10 @@ class CreateAgent:
             self._session.commit()
             return BasicResponse(data=self._agent, message="Agente criado com sucesso")
         except HTTPException as e:
+            self._session.rollback()
             raise e
         except Exception as e:
+            self._session.rollback()
             raise HTTPException(
                 detail=f"Erro ao criar agente: {e}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -116,7 +118,6 @@ class CreateAgent:
                     status_code=status.HTTP_409_CONFLICT,
                 )
 
-    # TEST: Need to test the new KnowledgeBaseHandler class, create a new csv file with questions and answers and submit to endpoint
     async def _process_csv_file(self) -> None:
         if self._file:
             try:
