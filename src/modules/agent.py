@@ -1,4 +1,3 @@
-import json
 from sqlalchemy import select
 from src.modules.csv_handler import KnowledgeBaseHandler
 from src.schemas.basic_response import BasicResponse, GetAgentBasicResponse
@@ -13,8 +12,6 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status, UploadFile
 
 
-# NOTE: Moved csv file validation but i need to test if the implementation is correct
-# TODO: Create an schema to this endpoint request params
 class CreateAgent:
     def __init__(
         self,
@@ -34,41 +31,79 @@ class CreateAgent:
         self._knowledge_base_id = knowledge_base_id
         self._name = name
         self._theme = theme
-        self._behavior = behavior
+        self._behavior = behavior or (
+            "Responda de forma clara, útil e educada. Varie o estilo mantendo o sentido original. "
+            "Use uma linguagem acessível, mas mantenha profissionalismo."
+        )
         self._temperature = temperature
         self._top_p = top_p
-        self._groups = groups
+        self._groups = groups or []
         self._knowledge_base_name = knowledge_base_name
+        self._knowledge_base: KnowledgeBase | None = None
         self._questions_and_answers: dict[str, list[str]] | None = None
+        self._agent: Agent | None = None
+        self._response: AgentResponse | None = None
 
     async def execute(self) -> BasicResponse[AgentResponse]:
         try:
-            if self._file and self._knowledge_base_id:
-                raise HTTPException(
-                    detail="Não é possível carregar uma base de conhecimento e selecionar uma existente",
-                    status_code=status.HTTP_406_NOT_ACCEPTABLE,
-                )
-            self._handle_knowledge_base()
-            agent = await self.create_agent()
+            self._validate()
+            await self._handle_knowledge_base()
+            await self.create_agent()
+            self._make_response()
             self._session.commit()
-            return BasicResponse(data=agent, message="Agente criado com sucesso!")
-        except HTTPException:
-            raise
+            return BasicResponse(data=self._agent, message="Agente criado com sucesso")
+        except HTTPException as e:
+            raise e
         except Exception as e:
             raise HTTPException(
-                detail=f"Erro ao criar agente: {e}.",
+                detail=f"Erro ao criar agente: {e}",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-    def _handle_knowledge_base(self) -> None:
-        if self._knowledge_base_id:
-            self._verify_if_knowledge_base_already_have_a_agent()
-            return
+    def _validate(self) -> None:
+        if self._file and self._knowledge_base_id:
+            raise HTTPException(
+                detail="Não é possível carregar uma base de conhecimento e selecionar uma existente",
+                status_code=status.HTTP_406_NOT_ACCEPTABLE,
+            )
+        if self._file and not self._knowledge_base_name:
+            raise HTTPException(
+                detail="A base precisa ter um nome para ser carregada",
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
+        if self._groups:
+            self._validate_groups()
 
-        self._process_csv_file()
+    def _validate_groups(self) -> None:
+        groups = self._session.query(Group).filter(Group.id.in_(self._groups)).all()
+        if len(groups) != len(self._groups):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Um ou mais grupos não foram encontrados.",
+            )
+
+    async def _handle_knowledge_base(self) -> None:
+        if self._knowledge_base_id:
+            self._get_knowledge_base()
+            self._verify_if_knowledge_base_already_have_an_agent()
+            return
+        await self._process_csv_file()
         self._create_knowledge_base()
 
-    def _verify_if_knowledge_base_already_have_a_agent(self) -> None:
+    def _get_knowledge_base(self) -> None:
+        if self._knowledge_base_id:
+            query = select(KnowledgeBase).where(
+                KnowledgeBase.id == self._knowledge_base_id
+            )
+            result = self._session.execute(query)
+            self._knowledge_base = result.scalar_one_or_none()
+            if self._knowledge_base is None:
+                raise HTTPException(
+                    detail="Base de conhecimento não encontrada",
+                    status_code=status.HTTP_404_NOT_FOUND,
+                )
+
+    def _verify_if_knowledge_base_already_have_an_agent(self) -> None:
         if self._knowledge_base_id:
             query = select(Agent).where(
                 Agent.knowledge_base_id == self._knowledge_base_id
@@ -81,8 +116,8 @@ class CreateAgent:
                     status_code=status.HTTP_409_CONFLICT,
                 )
 
-    # TEST: Need to test the new KnowledgeBaseHandler class
-    async def _process_csv_file(self) -> dict[str, list[str]]:
+    # TEST: Need to test the new KnowledgeBaseHandler class, create a new csv file with questions and answers and submit to endpoint
+    async def _process_csv_file(self) -> None:
         if self._file:
             try:
                 self._questions_and_answers = await KnowledgeBaseHandler(
@@ -94,59 +129,42 @@ class CreateAgent:
                     detail=f"Erro ao processar o arquivo CSV: {e}",
                 )
 
-    async def create_agent(self) -> AgentResponse:
-        behavior = self._behavior or (
-            "Responda de forma clara, útil e educada. Varie o estilo mantendo o sentido original. "
-            "Use uma linguagem acessível, mas mantenha profissionalismo."
+    def _create_knowledge_base(self) -> None:
+        knowledge_base = dict(
+            name=self._knowledge_base_name, data=self._questions_and_answers
         )
-
-        if self._file and self._knowledge_base_name:
-            knowledge_base_data = await self._process_csv_file()
-            new_knowledge_base = KnowledgeBase(
-                name=self._knowledge_base_name,
-                data=json.dumps(knowledge_base_data),
-            )
-            self._session.add(new_knowledge_base)
-            self._session.flush()
-            self._knowledge_base_id = new_knowledge_base.id
-        elif self._file and not self._knowledge_base_name:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="A base precisa ter um nome para ser carregada",
-            )
-
-        agent = Agent(
-            name=self._name,
-            behavior=behavior,
-            theme=self._theme,
-            temperature=self._temperature,
-            top_p=self._top_p,
-            knowledge_base_id=self._knowledge_base_id,
-        )
-
-        if self._groups:
-            groups = self._session.query(Group).filter(Group.id.in_(self._groups)).all()
-            if len(groups) != len(self._groups):
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Um ou mais grupos não foram encontrados.",
-                )
-            agent.groups = groups
-
-        self._session.add(agent)
+        self._knowledge_base = KnowledgeBase(**knowledge_base)
+        self._session.add(self._knowledge_base)
         self._session.flush()
-        self._session.refresh(agent)
+        self._session.refresh(self._knowledge_base)
 
-        return AgentResponse(
-            id=agent.id,
-            name=agent.name,
-            theme=agent.theme,
-            behavior=agent.behavior,
-            temperature=agent.temperature,
-            top_p=agent.top_p,
-            knowledge_base_id=agent.knowledge_base_id,
-            groups=[group.id for group in agent.groups],
-        )
+    async def create_agent(self) -> None:
+        if self._knowledge_base:
+            self._agent = Agent(
+                name=self._name,
+                behavior=self._behavior,
+                theme=self._theme,
+                temperature=self._temperature,
+                top_p=self._top_p,
+                knowledge_base_id=self._knowledge_base.id,
+                groups=self._groups,
+            )
+            self._session.add(self._agent)
+            self._session.flush()
+            self._session.refresh(self._agent)
+
+    def _make_response(self) -> None:
+        if self._agent:
+            self._response = AgentResponse(
+                id=self._agent.id,
+                name=self._agent.name,
+                theme=self._agent.theme,
+                behavior=self._agent.behavior,
+                temperature=self._agent.temperature,
+                top_p=self._agent.top_p,
+                knowledge_base_id=self._agent.knowledge_base_id,
+                groups=[group.id for group in self._agent.groups],
+            )
 
 
 class GetAgents:
