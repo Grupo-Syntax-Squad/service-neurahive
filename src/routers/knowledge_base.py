@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, Depends, Form
+from fastapi import APIRouter, Query, UploadFile, File, Depends, Form
 from sqlalchemy.orm import Session
 from typing import List
 from src.auth.auth_utils import Auth, PermissionValidator
@@ -12,6 +12,7 @@ from src.schemas.knowledge_base import (
     GetKnowledgeBaseMetadataResponse,
 )
 from src.modules.knowledge_base import (
+    CheckFilename,
     ReadKnowledgeBase,
     UploadKnowledgeBase,
     ListKnowledgeBases,
@@ -32,6 +33,17 @@ async def upload_knowledge_base(
     return await UploadKnowledgeBase(file, name, session).execute()
 
 
+@router.get("/filenameAvailable", response_model=BasicResponse[bool])
+def check_filename(
+    filename: str = Query(...),
+    current_user: CurrentUser = Depends(Auth.get_current_user),
+    session: Session = Depends(get_db),
+) -> BasicResponse[bool]:
+    print(filename)
+    PermissionValidator(current_user, [Role.ADMIN, Role.CURATOR]).execute()
+    return CheckFilename(session, filename).execute()
+
+
 @router.get("/{id}", response_model=BasicResponse[GetKnowledgeBaseResponse])
 def get_knowledge_base(
     id: int,
@@ -49,3 +61,4 @@ def get_knowledge_base_metadata(
 ) -> BasicResponse[List[GetKnowledgeBaseMetadataResponse]]:
     PermissionValidator(current_user, [Role.ADMIN, Role.CURATOR]).execute()
     return ListKnowledgeBases(session).execute()
+
