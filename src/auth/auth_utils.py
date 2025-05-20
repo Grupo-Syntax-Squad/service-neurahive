@@ -60,7 +60,7 @@ class Auth:
         if NO_AUTH:
             return None
         credentials_exception = HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Credenciais inválidas"
         )
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -98,12 +98,12 @@ class PermissionValidator:
         if role.value not in self._user.role:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="You do not have access to this resource",
+                detail="Você não possui acesso a esse recurso",
             )
 
     def _verify_roles(self, roles: list[Role]) -> None:
         if not any(role.value in self._user.role for role in roles):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="You do not have access to this resource",
+                detail="Você não possui acesso a esse recurso",
             )

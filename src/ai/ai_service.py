@@ -64,6 +64,11 @@ class GeminiComunicationHandler:
         self._faq_context = "\n".join(question_and_answers)
 
     def _initialize_system_message(self) -> None:
+        if not self._agent.behavior:
+            self._agent.behavior = (
+            "Responda de forma clara, útil e educada. Varie o estilo mantendo o sentido original. "
+            "Use uma linguagem acessível, mas mantenha profissionalismo.")
+
         self._system_message = {
             "role": "system",
             "content": (
