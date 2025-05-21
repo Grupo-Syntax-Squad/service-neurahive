@@ -17,10 +17,12 @@ class RouterCreateChat:
         self._session = session
         self._params = params
         self._new_chat: Chat | None
+        self._user: User | None = None
 
     def execute(self) -> BasicResponse[GetChatsResponse]:
         try:
             self._verify_user_exists()
+            self._validate_user_can_create_chat()
             self._verify_agent_exists()
             self._create_chat()
             self._session.commit()
@@ -35,11 +37,16 @@ class RouterCreateChat:
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
             return BasicResponse(
-                data=GetChatsResponse(id=self._new_chat.id,
-                                      enabled=self._new_chat.enabled,
-                                      agent_id=self._new_chat.agent_id,
-                                      agent_name=self._agent.name, 
-                                      user_id=self._new_chat.user_id),)
+                data=GetChatsResponse(
+                    id=self._new_chat.id,
+                    enabled=self._new_chat.enabled,
+                    agent_id=self._new_chat.agent_id,
+                    agent_name=self._agent.name,
+                    user_id=self._new_chat.user_id,
+                ),
+            )
+        except HTTPException as e:
+            raise e
         except Exception as e:
             raise HTTPException(
                 detail=f"Erro ao criar o chat: {e}.",
@@ -49,10 +56,18 @@ class RouterCreateChat:
     def _verify_user_exists(self) -> None:
         query = select(User).where(User.id == self._params.user_id)
         result = self._session.execute(query).unique()
-        if result.scalars().first() is None:
+        self._user = result.scalar_one_or_none()
+        if self._user is None:
             raise HTTPException(
                 detail=f"Usuário com o id {self._params.user_id} não existe!",
                 status_code=status.HTTP_404_NOT_FOUND,
+            )
+
+    def _validate_user_can_create_chat(self) -> None:
+        if self._params.agent_id not in self._user.agents:
+            raise HTTPException(
+                detail="Não é possível criar um chat com um agente não permitido ao usuário",
+                status_code=status.HTTP_412_PRECONDITION_FAILED,
             )
 
     def _verify_agent_exists(self) -> None:
