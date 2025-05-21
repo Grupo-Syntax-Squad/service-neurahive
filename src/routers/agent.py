@@ -9,7 +9,6 @@ from src.auth.auth_utils import Auth
 from src.schemas.agent import (
     AgentResponse,
     GetAgentRequest,
-    PostAgent,
     GetAgentsRequest,
 )
 from src.modules.agent import CreateAgent, DeleteAgent, GetAgent, GetAgents, UpdateAgent
@@ -44,8 +43,9 @@ async def post_agent(
     name: str = Form(...),
     theme: str = Form(...),
     behavior: Optional[str] = Form(None),
-    temperature: float = Form(0.5),
-    top_p: float = Form(0.5),
+    temperature: float = Form(...),
+    top_p: float = Form(...),
+    image_id: int = Form(None),
     groups: Optional[List[int]] = Form(default_factory=list),
     knowledge_base_id: Optional[int] = Form(None),
     file: Optional[UploadFile] = File(None),
@@ -61,6 +61,7 @@ async def post_agent(
         behavior,
         temperature,
         top_p,
+        image_id,
         groups,
         knowledge_base_id,
         file,
@@ -69,14 +70,36 @@ async def post_agent(
 
 
 @router.put("/{agent_id}")
-def put_agent(
+async def put_agent(
     agent_id: int,
-    request: PostAgent,
+    name: str = Form(...),
+    theme: str = Form(...),
+    behavior: Optional[str] = Form(None),
+    temperature: float = Form(...),
+    top_p: float = Form(...),
+    image_id: int = Form(None),
+    groups: Optional[List[int]] = Form(default_factory=list),
+    knowledge_base_id: Optional[int] = Form(None),
+    file: Optional[UploadFile] = File(None),
+    knowledge_base_name: Optional[str] = Form(None),
     current_user: CurrentUser = Depends(Auth.get_current_user),
-    session: Session = Depends(get_db),
+    session: Session = Depends(get_db)
 ) -> BasicResponse[AgentResponse]:
     PermissionValidator(current_user, [Role.ADMIN, Role.CURATOR]).execute()
-    return UpdateAgent(session, agent_id, request).execute()
+    return await UpdateAgent(
+        session,
+        agent_id,
+        name,
+        theme,
+        behavior,
+        temperature,
+        top_p,
+        image_id,
+        groups,
+        knowledge_base_id,
+        file,
+        knowledge_base_name
+    ).execute()
 
 
 @router.delete("/")

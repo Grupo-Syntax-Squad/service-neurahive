@@ -14,9 +14,10 @@ class AgentResponse(BaseModel):
     id: int
     name: str
     theme: str
-    behavior: str
+    behavior: str | None
     temperature: float
     top_p: float
+    image_id: int | None
     groups: Optional[List[int]] = Field(default_factory=lambda: [])
     knowledge_base_id: Optional[int]
 
