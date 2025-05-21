@@ -12,6 +12,7 @@ from src.routers import (
     websocket_chat,
     chat,
     knowledge_base,
+    statistics,
 )
 import logging
 
@@ -40,3 +41,4 @@ app.include_router(agent.router)
 app.include_router(websocket_chat.router)
 app.include_router(chat.router)
 app.include_router(knowledge_base.router)
+app.include_router(statistics.router)
