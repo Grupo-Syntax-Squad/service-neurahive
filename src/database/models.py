@@ -87,6 +87,7 @@ class Agent(Base):  # type: ignore[valid-type, misc]
         ForeignKey("knowledge_base.id"), unique=True, nullable=True
     )
     image_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    enabled: Mapped[bool] = mapped_column(Boolean, server_default=text("TRUE"))
 
     users = relationship(
         "User",

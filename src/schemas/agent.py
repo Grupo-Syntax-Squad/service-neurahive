@@ -20,6 +20,7 @@ class AgentResponse(BaseModel):
     image_id: int | None
     groups: Optional[List[int]] = Field(default_factory=lambda: [])
     knowledge_base_id: Optional[int]
+    enabled: bool
 
     class Config:
         orm_mode = True
@@ -34,6 +35,7 @@ class PostAgent(BaseModel):
     top_p: float = Field(default=0.5)
     groups: Optional[List[int]] = []
     knowledge_base_id: Optional[int]
+    enabled: bool
 
     class Config:
         orm_mode = True

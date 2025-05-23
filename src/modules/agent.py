@@ -25,6 +25,7 @@ class CreateAgent:
         knowledge_base_id: int | None,
         file: UploadFile | None,
         knowledge_base_name: str | None,
+        enabled: bool,
     ):
         self._session = session
         self._file = file
@@ -38,6 +39,7 @@ class CreateAgent:
         self._groups = groups or []
         self._knowledge_base_name = knowledge_base_name
         self._knowledge_base: KnowledgeBase | None = None
+        self._enabled = enabled
         self._questions_and_answers: dict[str, list[str]] | None = None
         self._agent: Agent | None = None
         self._response: AgentResponse | None = None
@@ -156,6 +158,7 @@ class CreateAgent:
                 image_id=self._image_id,
                 knowledge_base_id=self._knowledge_base.id,
                 groups=self._groups,
+                enabled=self._enabled,
             )
         else:
             self._agent = Agent(
@@ -247,6 +250,7 @@ class GetAgents:
                     top_p=agent.top_p,
                     image_id=agent.image_id,
                     knowledge_base_id=agent.knowledge_base_id,
+                    enabled=agent.enabled,
                     groups=[group.id for group in agent.groups],
                 )
                 for agent in self._agents
@@ -294,6 +298,7 @@ class GetAgent:
                 top_p=self._agent.top_p,
                 image_id=self._agent.image_id,
                 knowledge_base_id=self._agent.knowledge_base_id,
+                enabled=self._agent.enabled,
                 groups=[group.id for group in self._agent.groups],
             )
 
@@ -311,6 +316,7 @@ class UpdateAgent:
         image_id: int,
         groups: list[int] | None,
         knowledge_base_id: int | None,
+        enabled: bool,
         file: UploadFile | None,
         knowledge_base_name: str | None
     ) -> None:
@@ -326,6 +332,7 @@ class UpdateAgent:
         self._image_id = image_id
         self._groups = groups or []
         self._knowledge_base_name = knowledge_base_name
+        self._enabled = enabled
         self._knowledge_base: KnowledgeBase | None = None
         self._questions_and_answers: dict[str, list[str]] | None = None
         self._agent: Agent | None = None
@@ -429,6 +436,7 @@ class UpdateAgent:
             agent.theme = self._theme
             agent.behavior = self._behavior
             agent.temperature = self._temperature
+            agent.enabled = self._enabled
             agent.top_p = self._top_p
             agent.image_id = self._image_id
 
@@ -461,6 +469,7 @@ class UpdateAgent:
                 top_p=agent.top_p,
                 image_id=agent.image_id,
                 knowledge_base_id=agent.knowledge_base_id,
+                enabled=agent.enabled,
                 groups=[group.id for group in agent.groups],
             )
 

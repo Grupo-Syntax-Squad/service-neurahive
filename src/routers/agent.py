@@ -81,6 +81,7 @@ async def put_agent(
     groups: Optional[List[int]] = Form(default_factory=list),
     knowledge_base_id: Optional[int] = Form(None),
     file: Optional[UploadFile] = File(None),
+    enabled: bool = Form(...),
     knowledge_base_name: Optional[str] = Form(None),
     current_user: CurrentUser = Depends(Auth.get_current_user),
     session: Session = Depends(get_db)
@@ -98,7 +99,8 @@ async def put_agent(
         groups,
         knowledge_base_id,
         file,
-        knowledge_base_name
+        knowledge_base_name,
+        enabled
     ).execute()
 
 
