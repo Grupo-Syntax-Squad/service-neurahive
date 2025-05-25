@@ -56,9 +56,10 @@ class CreateAgent:
             self._session.rollback()
             raise e
         except Exception as e:
+            print("[ERROR]:", e)
             self._session.rollback()
             raise HTTPException(
-                detail=f"Erro ao criar agente: {e}",
+                detail="Erro ao criar agente",
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -99,7 +100,7 @@ class CreateAgent:
                 KnowledgeBase.id == self._knowledge_base_id
             )
             result = self._session.execute(query)
-            self._knowledge_base = result.scalar_one_or_none()
+            self._knowledge_base = result.unique().scalar_one_or_none()
             if self._knowledge_base is None:
                 raise HTTPException(
                     detail="Base de conhecimento não encontrada",
@@ -112,7 +113,7 @@ class CreateAgent:
                 Agent.knowledge_base_id == self._knowledge_base_id
             )
             result = self._session.execute(query)
-            agents = result.scalars().all()
+            agents = result.unique().scalars().all()
             if len(agents) > 0:
                 raise HTTPException(
                     detail="Base de conhecimento já vinculada a outro agente",
