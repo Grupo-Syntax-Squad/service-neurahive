@@ -143,9 +143,9 @@ class CreateAgent:
         except Exception as e:
             print(e)
             raise HTTPException(
-                                status_code=status.HTTP_400_BAD_REQUEST,
-                                detail=f"Erro ao processar o arquivo CSV: {e}",
-                            )
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Erro ao processar o arquivo CSV: {e}",
+            )
 
     async def create_agent(self) -> None:
         if self._knowledge_base:
@@ -173,7 +173,7 @@ class CreateAgent:
         self._session.add(self._agent)
         self._session.flush()
         self._session.refresh(self._agent)
-            
+
     def _make_response(self) -> None:
         if self._agent:
             self._response = AgentResponse(
@@ -186,6 +186,7 @@ class CreateAgent:
                 image_id=self._agent.image_id,
                 knowledge_base_id=self._agent.knowledge_base_id,
                 groups=[group.id for group in self._agent.groups],
+                enabled=self._agent.enabled,
             )
 
 
@@ -318,7 +319,7 @@ class UpdateAgent:
         knowledge_base_id: int | None,
         enabled: bool,
         file: UploadFile | None,
-        knowledge_base_name: str | None
+        knowledge_base_name: str | None,
     ) -> None:
         self._session = session
         self._agent_id = agent_id
@@ -342,7 +343,7 @@ class UpdateAgent:
         self._validate()
         agent = await self.update_agent()
         return BasicResponse(data=agent, message="Agente atualizado com sucesso.")
-    
+
     def _validate(self) -> None:
         if self._file and self._knowledge_base_id:
             raise HTTPException(
@@ -364,7 +365,7 @@ class UpdateAgent:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Um ou mais grupos não foram encontrados.",
             )
-    
+
     async def _handle_knowledge_base(self) -> None:
         if self._knowledge_base_id:
             self._get_knowledge_base()
@@ -373,7 +374,7 @@ class UpdateAgent:
         if self._file:
             await self._process_csv_file()
             self._create_knowledge_base()
-        
+
     def _get_knowledge_base(self) -> None:
         if self._knowledge_base_id:
             query = select(KnowledgeBase).where(
@@ -386,7 +387,7 @@ class UpdateAgent:
                     detail="Base de conhecimento não encontrada",
                     status_code=status.HTTP_404_NOT_FOUND,
                 )
-    
+
     def _verify_if_knowledge_base_already_have_an_agent(self) -> None:
         if self._knowledge_base_id:
             query = select(Agent).where(
@@ -399,7 +400,7 @@ class UpdateAgent:
                     detail="Base de conhecimento já vinculada a outro agente",
                     status_code=status.HTTP_409_CONFLICT,
                 )
-            
+
     async def _process_csv_file(self) -> None:
         if self._file:
             try:
@@ -411,7 +412,7 @@ class UpdateAgent:
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=f"Erro ao processar o arquivo CSV: {e}",
                 )
-    
+
     def _create_knowledge_base(self) -> None:
         knowledge_base = dict(
             name=self._knowledge_base_name, data=self._questions_and_answers
@@ -442,7 +443,10 @@ class UpdateAgent:
 
             if not (self._knowledge_base_id or self._file):
                 agent.knowledge_base_id = None
-            elif (agent.knowledge_base_id and agent.knowledge_base_id != self._knowledge_base_id) or self._file:
+            elif (
+                agent.knowledge_base_id
+                and agent.knowledge_base_id != self._knowledge_base_id
+            ) or self._file:
                 await self._handle_knowledge_base()
 
             if self._knowledge_base_id:

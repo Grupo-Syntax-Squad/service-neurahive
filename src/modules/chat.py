@@ -1,3 +1,4 @@
+from typing import Any
 from sqlalchemy import select, text, update
 from src.database.models import Agent, Chat, ChatHistory, User
 from src.schemas.basic_response import BasicResponse
@@ -64,11 +65,12 @@ class RouterCreateChat:
             )
 
     def _validate_user_can_create_chat(self) -> None:
-        if self._params.agent_id not in self._user.agents:
-            raise HTTPException(
-                detail="Não é possível criar um chat com um agente não permitido ao usuário",
-                status_code=status.HTTP_412_PRECONDITION_FAILED,
-            )
+        if self._user is not None:
+            if self._params.agent_id not in self._user.agents:
+                raise HTTPException(
+                    detail="Não é possível criar um chat com um agente não permitido ao usuário",
+                    status_code=status.HTTP_412_PRECONDITION_FAILED,
+                )
 
     def _verify_agent_exists(self) -> None:
         query = select(Agent).where(Agent.id == self._params.agent_id)
@@ -110,14 +112,14 @@ class RouterGetChats:
             )
 
     def _create_query_conditions(self) -> None:
-        self._conditions = []
+        self._conditions: list[str] = []
         if self._params.user_id is not None:
             self._conditions.append("c.user_id = :user_id")
         if self._params.enabled is not None:
             self._conditions.append("c.enabled = :enabled")
 
     def _create_query_params(self) -> None:
-        self._query_params = {}
+        self._query_params: dict[str, Any] = {}
         if self._params.user_id is not None:
             self._query_params["user_id"] = self._params.user_id
         if self._params.enabled is not None:

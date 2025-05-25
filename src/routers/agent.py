@@ -66,6 +66,7 @@ async def post_agent(
         knowledge_base_id,
         file,
         knowledge_base_name,
+        True,
     ).execute()
 
 
@@ -84,7 +85,7 @@ async def put_agent(
     enabled: bool = Form(...),
     knowledge_base_name: Optional[str] = Form(None),
     current_user: CurrentUser = Depends(Auth.get_current_user),
-    session: Session = Depends(get_db)
+    session: Session = Depends(get_db),
 ) -> BasicResponse[AgentResponse]:
     PermissionValidator(current_user, [Role.ADMIN, Role.CURATOR]).execute()
     return await UpdateAgent(
@@ -98,9 +99,9 @@ async def put_agent(
         image_id,
         groups,
         knowledge_base_id,
+        enabled,
         file,
         knowledge_base_name,
-        enabled
     ).execute()
 
 
