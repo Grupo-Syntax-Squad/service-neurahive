@@ -168,7 +168,7 @@ class UpdateUser:
         query = select(Agent).where(Agent.id.in_(self._request.selected_agents))
         result = self._session.execute(query)
         agents = result.unique().scalars().all()
-        self._agents = list(agents) if agents else None
+        self._agents = list(agents) if agents else []
 
     def _update_user(self) -> None:
         if self._user:
