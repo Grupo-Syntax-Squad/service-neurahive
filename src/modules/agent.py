@@ -234,7 +234,7 @@ class GetAgents:
             self._agents_ids = [agent.id for agent in self._user.agents]
 
     def _get_agents(self) -> None:
-        query = select(Agent)
+        query = select(Agent).where(Agent.enabled)
         if self._agents_ids is not None:
             query = query.where(Agent.id.in_(self._agents_ids))
         result = self._session.execute(query).unique().scalars().all()
@@ -485,13 +485,25 @@ class DeleteAgent:
         self._agent_id = agent_id
 
     def execute(self) -> BasicResponse[None]:
-        agent = self._session.query(Agent).filter(Agent.id == self._agent_id).first()
-        if not agent:
+        try:
+            self._get_agent()
+            self._delete_agent()
+            self._session.commit()
+            return BasicResponse(message="Agente deletado com sucesso.")
+        except HTTPException as e:
+            self._session.rollback()
+            raise e
+        except Exception as e:
+            self._session.rollback()
+            raise HTTPException(detail="Erro interno", status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def _get_agent(self) -> None:
+        self._agent: Agent = self._session.query(Agent).filter(Agent.id == self._agent_id).first()
+        if not self._agent:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Agent not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Agente não encontrado"
             )
-
-        self._session.delete(agent)
-        self._session.commit()
-
-        return BasicResponse(message="Agent deleted successfully.")
+    
+    def _delete_agent(self) -> None:
+        self._agent.enabled = False
+        self._session.add(self._agent)
