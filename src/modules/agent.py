@@ -497,14 +497,14 @@ class DeleteAgent:
         except HTTPException as e:
             self._session.rollback()
             raise e
-        except Exception as e:
+        except Exception:
             self._session.rollback()
             raise HTTPException(
                 detail="Erro interno", status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
     def _get_agent(self) -> None:
-        self._agent: Agent = (
+        self._agent: Agent | None = (
             self._session.query(Agent).filter(Agent.id == self._agent_id).first()
         )
         if not self._agent:
@@ -513,5 +513,6 @@ class DeleteAgent:
             )
 
     def _delete_agent(self) -> None:
-        self._agent.enabled = False
-        self._session.add(self._agent)
+        if self._agent is not None:
+            self._agent.enabled = False
+            self._session.add(self._agent)
