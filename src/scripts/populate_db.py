@@ -2,6 +2,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 from src.database.get_db import get_db
 from src.database.models import Agent, Chat, KnowledgeBase, User
+from passlib.context import CryptContext
 
 
 class PopulateDatabase:
@@ -14,6 +15,7 @@ class PopulateDatabase:
 
     def execute(self) -> None:
         with self._session as session:
+            self._initialize_crypt_context()
             self._truncate_all_tables(session)
 
             self._initialize_users()
@@ -28,6 +30,9 @@ class PopulateDatabase:
             self._initialize_chats()
             self._populate_chats(session)
 
+    def _initialize_crypt_context(self) -> None:
+        self._pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
     def _truncate_all_tables(self, session: Session) -> None:
         session.execute(text('TRUNCATE TABLE agent, "user" RESTART IDENTITY CASCADE;'))
         session.commit()
@@ -38,49 +43,49 @@ class PopulateDatabase:
                 role=[1, 2, 3],
                 name="Admin user",
                 email="admin@neurahive.com",
-                password="admin",
+                password=self._pwd_context.hash("admin"),
                 agents=[],
             ),
             User(
                 role=[2, 3],
                 name="Curator user",
                 email="curator@neurahive.com",
-                password="curator",
+                password=self._pwd_context.hash("curator"),
                 agents=[],
             ),
             User(
                 role=[3],
                 name="Client user 1",
                 email="client1@neurahive.com",
-                password="client1",
+                password=self._pwd_context.hash("client1"),
                 agents=[],
             ),
             User(
                 role=[3],
                 name="Client user 2",
                 email="client2@neurahive.com",
-                password="client2",
+                password=self._pwd_context.hash("client2"),
                 agents=[],
             ),
             User(
                 role=[3],
                 name="Client user 3",
                 email="client3@neurahive.com",
-                password="client3",
+                password=self._pwd_context.hash("client3"),
                 agents=[],
             ),
             User(
                 role=[3],
                 name="Client user 4",
                 email="client4@neurahive.com",
-                password="client4",
+                password=self._pwd_context.hash("client4"),
                 agents=[],
             ),
             User(
                 role=[3],
                 name="Client user 5",
                 email="client5@neurahive.com",
-                password="client5",
+                password=self._pwd_context.hash("client5"),
                 agents=[],
             ),
         ]
@@ -128,7 +133,7 @@ class PopulateDatabase:
         if self._knowledge_bases:
             self._agents = [
                 Agent(
-                    name="Agent 1",
+                    name="Agente do setor de administração",
                     users=[],
                     groups=[],
                     theme="Administração",
@@ -137,7 +142,7 @@ class PopulateDatabase:
                     knowledge_base_id=self._knowledge_bases[0].id,
                 ),
                 Agent(
-                    name="Agent 2",
+                    name="Agente do setor de vendas",
                     users=[],
                     groups=[],
                     theme="Setor de vendas",
@@ -146,7 +151,7 @@ class PopulateDatabase:
                     knowledge_base_id=self._knowledge_bases[1].id,
                 ),
                 Agent(
-                    name="Agent 3",
+                    name="Agente do setor de financeiro",
                     users=[],
                     groups=[],
                     theme="Financeiro",
@@ -155,7 +160,7 @@ class PopulateDatabase:
                     knowledge_base_id=self._knowledge_bases[2].id,
                 ),
                 Agent(
-                    name="Agent 4",
+                    name="Agente do setor de TI",
                     users=[],
                     groups=[],
                     theme="TI",

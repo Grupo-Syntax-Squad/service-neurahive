@@ -1,5 +1,6 @@
 from __future__ import annotations
 from datetime import datetime
+from typing import Optional
 from sqlalchemy import (
     ARRAY,
     Column,
@@ -79,12 +80,14 @@ class Agent(Base):  # type: ignore[valid-type, misc]
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String)
     theme: Mapped[str] = mapped_column(String)
-    behavior: Mapped[str] = mapped_column(String)
+    behavior: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     temperature: Mapped[float] = mapped_column(Float, default=0.5)
     top_p: Mapped[float] = mapped_column(Float, default=0.5)
-    knowledge_base_id: Mapped[int] = mapped_column(
-        ForeignKey("knowledge_base.id"), unique=True
+    knowledge_base_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("knowledge_base.id"), unique=True, nullable=True
     )
+    image_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    enabled: Mapped[bool] = mapped_column(Boolean, server_default=text("TRUE"))
 
     users = relationship(
         "User",

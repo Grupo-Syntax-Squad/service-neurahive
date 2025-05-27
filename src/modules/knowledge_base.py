@@ -76,7 +76,7 @@ class ReadKnowledgeBase:
                 return GetKnowledgeBaseResponse(
                     id=knowledge_base.id,
                     name=knowledge_base.name,
-                    data=knowledge_base.data,  # type: ignore [arg-type]
+                    data=knowledge_base.data,  # type: ignore[arg-type]
                 )
             return None
 
@@ -99,3 +99,14 @@ class ListKnowledgeBases:
                 )
                 for kb in knowledge_bases
             ]
+        
+
+class CheckFilename:
+    def __init__(self, session: Session, filename: str):
+        self.session = session
+        self.filename = filename
+
+    def execute(self) -> BasicResponse[bool]:
+        with self.session as db:            
+            in_use = db.query(KnowledgeBase).filter_by(name=self.filename).first()
+            return BasicResponse(data=not in_use)

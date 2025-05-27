@@ -2,15 +2,25 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 
 
+class GetAgentsRequest(BaseModel):
+    user_id: int | None = None
+
+
+class GetAgentRequest(BaseModel):
+    agent_id: int
+
+
 class AgentResponse(BaseModel):
     id: int
     name: str
     theme: str
-    behavior: str
+    behavior: str | None
     temperature: float
     top_p: float
+    image_id: int | None
     groups: Optional[List[int]] = Field(default_factory=lambda: [])
     knowledge_base_id: Optional[int]
+    enabled: bool
 
     class Config:
         orm_mode = True
@@ -25,6 +35,7 @@ class PostAgent(BaseModel):
     top_p: float = Field(default=0.5)
     groups: Optional[List[int]] = []
     knowledge_base_id: Optional[int]
+    enabled: bool
 
     class Config:
         orm_mode = True
