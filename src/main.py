@@ -1,20 +1,23 @@
+import logging
+
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
+
 from src.database.get_db import engine
 from src.database.models import Base
 from src.middlewares.logging import log_requests
 from src.routers import (
-    auth,
-    example,
-    user,
-    group,
     agent,
-    websocket_chat,
+    auth,
     chat,
+    example,
+    group,
     knowledge_base,
     statistics,
+    user,
+    websocket_chat,
 )
-import logging
 
 logging.basicConfig(
     level=logging.INFO,
@@ -25,6 +28,16 @@ Base.metadata.create_all(bind=engine)
 
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "*"
+    ],  # << Permite requisições de qualquer origem (útil para testes, mas depois troque por domínios específicos)
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/", include_in_schema=False)
