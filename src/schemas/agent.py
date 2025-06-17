@@ -4,6 +4,7 @@ from typing import List, Optional
 
 class GetAgentsRequest(BaseModel):
     user_id: int | None = None
+    disabled_agents: bool = False
 
 
 class GetAgentRequest(BaseModel):

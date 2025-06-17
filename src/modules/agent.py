@@ -1,3 +1,4 @@
+from typing import Any
 from sqlalchemy import select
 from src.modules.knowledge_base_handler import KnowledgeBaseHandler
 from src.schemas.basic_response import BasicResponse, GetAgentBasicResponse
@@ -234,9 +235,12 @@ class GetAgents:
             self._agents_ids = [agent.id for agent in self._user.agents]
 
     def _get_agents(self) -> None:
-        query = select(Agent).where(Agent.enabled)
+        conditions: list[Any] = [Agent.enabled]
+        if self._params.disabled_agents:
+            conditions.clear()
         if self._agents_ids is not None:
-            query = query.where(Agent.id.in_(self._agents_ids))
+            conditions.append(Agent.id.in_(self._agents_ids))
+        query = select(Agent).where(*conditions)
         result = self._session.execute(query).unique().scalars().all()
         self._agents = list(result) if result else None
 
@@ -453,7 +457,7 @@ class UpdateAgent:
             if self._knowledge_base_id:
                 agent.knowledge_base_id = self._knowledge_base_id
 
-            if self._groups is not None:
+            if self._groups:
                 groups = db.query(Group).filter(Group.id.in_(self._groups)).all()
                 if len(groups) != len(self._groups):
                     raise HTTPException(
@@ -493,17 +497,22 @@ class DeleteAgent:
         except HTTPException as e:
             self._session.rollback()
             raise e
-        except Exception as e:
+        except Exception:
             self._session.rollback()
-            raise HTTPException(detail="Erro interno", status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            raise HTTPException(
+                detail="Erro interno", status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     def _get_agent(self) -> None:
-        self._agent: Agent = self._session.query(Agent).filter(Agent.id == self._agent_id).first()
+        self._agent: Agent | None = (
+            self._session.query(Agent).filter(Agent.id == self._agent_id).first()
+        )
         if not self._agent:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Agente não encontrado"
             )
-    
+
     def _delete_agent(self) -> None:
-        self._agent.enabled = False
-        self._session.add(self._agent)
+        if self._agent is not None:
+            self._agent.enabled = False
+            self._session.add(self._agent)
